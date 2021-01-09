@@ -45,8 +45,7 @@ def solver(params):
 
     # Solve system of ODEs using SciPy ODE solver
     tspan = (0, params.tf)
-    teval = np.linspace(0, params.tf, 1000)
-    sol = solve_ivp(dy_dt, tspan, y0, method='LSODA', t_eval=teval, args=(params,))
+    sol = solve_ivp(dy_dt, tspan, y0, method='LSODA', args=(params,))
 
     # Log information
     logging.basicConfig(format='%(message)s', level=logging.INFO)
@@ -82,7 +81,5 @@ def solver(params):
         'rhob_ca': sol.y[14 * N:15 * N],
         'Tw': sol.y[15 * N:]
     }
-
-    breakpoint()
 
     return results

@@ -63,8 +63,7 @@ def dy_dt(t, y, params):
     hps = solid.heat_coeff(params, cps, ds, ef, Lp, mfg, mu, rhog, rhob_b, rhob_c, rhob_g, v)
 
     # Gas and solid phase mass generation rates
-    Sb, Sc, Sca = kinetics.solid_gen(params, P, rhob_b, rhob_c, rhob_h2, Tg, Ts, Xcr, xg)
-    Sch4, Sco, Sco2, Sh2, Sh2o, St, Sg = kinetics.gas_gen(params, P, rhobz, Sb, Tg, Ts, Xcr, xg)
+    Sb, Sc, Sca, Sch4, Sco, Sco2, Sh2, Sh2o, St, Sg = kinetics.mass_gen(params, P, rhobz, Tg, Ts, Xcr, xg)
 
     # Solid temperature rate ∂T𝗌/∂t
     dTs_dt = solid.ts_rate(params, Cs, dx, ds, kg, hps, mfg, mu, P, Pr, rhog, rhobz, Sb, Tz, v, Xcr, xg)

@@ -295,7 +295,7 @@ def mfg_rate(params, ds, dx, ef, Lp, mfg, Mg, mu, rhobz, Sg, Tg, v):
 
     epb = (1 - ef0) * Ls / Lp
 
-    sfc = 2 * (3 / 2 * ds**2 * lb)**(2 / 3) / (ds * (ds + 2 * lb))
+    sfc = 2 * ((3 / 2) * ds**2 * lb)**(2 / 3) / (ds * (ds + 2 * lb))
 
     vin = max(v[N1 - 1], ug[N1 - 1])
     rhobbin = ms_dot / (vin * Ab)
@@ -331,7 +331,7 @@ def mfg_rate(params, ds, dx, ef, Lp, mfg, Mg, mu, rhobz, Sg, Tg, v):
 
     Smgg = Sgav
     Smgp = 150 * epb**2 * mu / (ef * (phi * dp)**2) + 1.75 * epb / (phi * dp) * rhog * ug
-    Smgs = 3 / 4 * rhosbav * (rhog / rhos) * (Cd / ds) * np.abs(-ug - v)
+    Smgs = (3 / 4) * rhosbav * (rhog / rhos) * (Cd / ds) * np.abs(-ug - v)
     SmgG = g * (epb * afg * rhop - rhob_gav)
     SmgF = 2 / Db * fg * rhob_gav * np.abs(ug) * ug
     SmgV = SmgG + Smgs * (ug + v) - (Smgp - Smgg) * ug - SmgF
