@@ -1,6 +1,6 @@
 from solver import solver
 from parameters import Parameters
-from plotter import plot_v, show_plots
+from plotter import plot_v, plot_rhobg, show_plots
 
 
 def main():
@@ -17,6 +17,7 @@ def main():
 
     # Plot results
     plot_v(results)
+    plot_rhobg(results)
     show_plots()
 
 

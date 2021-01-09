@@ -16,5 +16,20 @@ def plot_v(results):
     ax.legend()
 
 
+def plot_rhobg(results):
+    """
+    Plot bulk gas mass concentration over time.
+    """
+    t = results['t']
+    rhobg = results['rhob_g']
+
+    _, ax = plt.subplots(tight_layout=True)
+    ax.plot(t, rhobg[0], label='rhobg[0]')
+    ax.plot(t, rhobg[-1], label='rhobg[-1]')
+    ax.set_xlabel('time, t [s]')
+    ax.set_ylabel('bulk gas mass concentration, ρ̅𝗀 [kg/m³]')
+    ax.legend()
+
+
 def show_plots():
     plt.show()
