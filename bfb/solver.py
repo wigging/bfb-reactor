@@ -13,6 +13,7 @@ def solver(params):
     # Parameters used for initial conditions
     mfg = params.mfg
     N = params.N
+    Ni = params.Ni
     rhobg = params.rhobg
     Tg = params.Tg
     Tp = params.Tp
@@ -27,7 +28,8 @@ def solver(params):
     mfg_0 = np.full(N, mfg)
     rhobg_0 = np.full(N, rhobg)
     rhobh2o_0 = np.full(N, rhobg)
-    Tp_0 = np.full(N, Tp)
+    Tp_0 = np.zeros(N)
+    Tp_0[0:Ni] = Tp
     rhobc_0 = np.zeros(N)
     rhobh2_0 = np.zeros(N)
     rhobch4_0 = np.zeros(N)
