@@ -351,9 +351,9 @@ def mfg_rate(params, ds, dx, ef, Lp, mfg, Mg, mu, rhobz, Sg, Tg, v):
     Smg = Cmf + SmgV[1:N - 1]
     dmfgdt[1:Ni + 1] = Smg[0:Ni] + DP[1:Ni + 1]
 
-    # above the bed, in the freeboard
+    # in the bed top and in the freeboard
     Smgf = Cmf[Ni - 1:] + Smgg[Ni:N - 1] * ug[Ni:N - 1] + DP[Ni:N - 1]
-    dmfgdt[Ni + 1:] = Smgf
+    dmfgdt[Ni:N - 1] = Smgf
 
     # at top of reactor
     SmgfN = -1 / dx[N - 1] * mfg[N - 1] * (ug[N - 1] - ug[N - 2]) + Smgg[N - 1] * ug[N - 1]
