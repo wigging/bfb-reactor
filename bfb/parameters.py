@@ -1,47 +1,64 @@
-import json
 import numpy as np
 
 
 class Parameters:
 
-    def __init__(self, json_file):
-        self.Db = None
-        self.Dwo = None
-        self.Lb = None
-        self.Lu = None
-        self.Lsi = None
-        self.Mgin = None
-        self.N1 = None
-        self.N2 = None
-        self.N3 = None
-        self.P = None
-        self.Pa = None
-        self.SB = None
-        self.Tgin = None
-        self.db0 = None
-        self.ef0 = None
-        self.emf = None
-        self.lb = None
-        self.ms_dot = None
-        self.rhob = None
-        self.rhoc = None
-        self.rhop = None
-        self.wa = None
-        self.wc = None
-        self.xw = None
+    def __init__(self, params):
 
-        # Assign parameters from JSON file. Commented lines with // are ignored.
-        json_str = ''
+        self.Db = params['Db']
+        self.Dwo = params['Dwo']
+        self.Gp = params['Gp']
+        self.Gs = params['Gs']
+        self.L = params['L']
+        self.Lb = params['Lb']
+        self.Lu = params['Lu']
+        self.Lsi = params['Lsi']
+        self.Mgin = params['Mgin']
+        self.N1 = params['N1']
+        self.N2 = params['N2']
+        self.N3 = params['N3']
+        self.P = params['P']
+        self.Pa = params['Pa']
+        self.SB = params['SB']
+        self.Tg = params['Tg']
+        self.Tp = params['Tp']
+        self.Ts = params['Ts']
+        self.Tam = params['Tam']
+        self.Tgin = params['Tgin']
+        self.Tsin = params['Tsin']
+        self.Uha = params['Uha']
 
-        with open(json_file) as jfile:
-            for line in jfile:
-                if '//' not in line:
-                    json_str += line
-
-        json_data = json.loads(json_str)
-
-        for key in json_data:
-            setattr(self, key, json_data[key])
+        self.cf = params['cf']
+        self.cpp = params['cpp']
+        self.cpw = params['cpw']
+        self.db0 = params['db0']
+        self.dp = params['dp']
+        self.e = params['e']
+        self.ef0 = params['ef0']
+        self.emf = params['emf']
+        self.ep = params['ep']
+        self.es = params['es']
+        self.ew = params['ew']
+        self.gamp = params['gamp']
+        self.gams = params['gams']
+        self.kp = params['kp']
+        self.ks = params['ks']
+        self.kw = params['kw']
+        self.lb = params['lb']
+        self.ms_dot = params['ms_dot']
+        self.mfg = params['mfg']
+        self.n1 = params['n1']
+        self.phi = params['phi']
+        self.rhob = params['rhob']
+        self.rhoc = params['rhoc']
+        self.rhop = params['rhop']
+        self.rhow = params['rhow']
+        self.rhobg = params['rhobg']
+        self.tf = params['tf']
+        self.wa = params['wa']
+        self.wc = params['wc']
+        self.wH2O = params['wH2O']
+        self.xw = params['xw']
 
     @property
     def ugin(self):
