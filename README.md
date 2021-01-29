@@ -4,7 +4,7 @@
 
 ## Usage
 
-Execute the `main.py` file to run the model.
+Execute the `main.py` file from within the `bfbgasf` folder to run the model.
 
 ```bash
 $ python main.py
