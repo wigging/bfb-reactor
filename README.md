@@ -1,18 +1,23 @@
 # One-dimensional BFB gasifier model
 
-:warning: This project is a work in progress.
+:warning: This project is a work in progress. :warning:
+
+This repository contains a dynamic and a steady-state 1D model of a bubbling fluidized bed (BFB) gasifier. At the moment, the dynamic model is in the `dyn-bfbgasf` folder while the steady-state model is in the `ss-bfbgasf` folder.
 
 ## Usage
 
-Execute the `main.py` file from within the `bfbgasf` folder to run the model.
+Use the commands shown below to run each model.
 
 ```bash
+# Run the dynamic model
+$ cd dyn-bfbgasf
 $ python main.py
 ```
 
-## Code
-
-The system of ordinary differential equations (ODEs) is solved using the `solve_ivp()` function in SciPy. This solver function is called in `solve.py`. See `dydt_system.py` where the `dydt()` defines the system of ODEs.
+```bash
+# Run the steady-state model
+$ python ss-bfbgasf
+```
 
 ## Reference
 
