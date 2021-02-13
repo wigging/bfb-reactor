@@ -45,6 +45,7 @@ def ds_fuel(params):
 
     ya = wa
     yc = wc
+
     dsapp = (1 + (1.25 * (n1 * phy * (1 - Xc))**(1 / 3) - 1) * yc / (1 - wa))**(-1) * db
     ds = (ya / da + (1 - ya) / dsapp)**(-1)
 
@@ -64,8 +65,8 @@ def rhos_density(params):
 
     ya = wa
     yc = wc
-
     yb = 1 - (wa + wc + wH2O)
+
     rhob = (1 - wa) / (1 / rhobio - wa / rhoa)
     rhos = (ya / rhoa + yc / rhoc + yb / rhob)**(-1)
 
@@ -97,7 +98,7 @@ def ms_res(params, Fb, rhogin, rhos):
     return Ms_res
 
 
-def betaps_momentum(params, afg, ds, mfsin, rhos, v):
+def betaps_momentum(params, afg, ds, mfsin, rhos, rhobb, rhobc, v):
     """
     Solid fuel to inert bed material momentum transfer coefficient β𝗉𝗌
     [N⋅s/m⁴]. Momentum transfer due to collision with inert bed particles.
@@ -108,11 +109,9 @@ def betaps_momentum(params, afg, ds, mfsin, rhos, v):
     ef0 = params['ef0']
     rhop = params['rhop']
 
-    vin = v[-1]
-    rhosbin = mfsin / vin
-
     epb = 1 - ef0
-    rhosb = rhosbin
+    rhosb = rhobb + rhobc
+
     Yb = 1 / (1 + epb * rhos / rhosb)
     afs = Yb * (1 - ef0)
 

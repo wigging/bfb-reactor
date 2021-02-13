@@ -14,7 +14,7 @@
     // Bed material particle
     "ef0": 0.454,
     "rhop": 2650,
-    "cpp": 803,
+    "cpp": 830,
     "dp": 6.15e-4,
     "phi": 0.72,
     "ep": 0.76,

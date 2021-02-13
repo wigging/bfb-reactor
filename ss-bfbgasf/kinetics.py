@@ -1,5 +1,21 @@
 import numpy as np
 
+# Biomass pyrolysis kinetic parameters ---------------------------------------
+
+# biomass -> volatiles
+Abv = 1.44e4    # frequency factor [1/s]
+Ebv = 88.6e3    # activation energy [kJ/mol]
+
+# biomass -> char
+Abc = 7.38e5
+Ebc = 106.5e3
+
+# biomass -> tar
+Abt = 4.13e6
+Ebt = 112.7e3
+
+
+# Generation rates -----------------------------------------------------------
 
 def sb_gen(params, rhobb):
     """
@@ -10,18 +26,9 @@ def sb_gen(params, rhobb):
 
     Ts = Tgin
 
-    A0bv = 1.44e4
-    Ebv = 88.6e3
-
-    A0bc = 7.38e5
-    Ebc = 106.5e3
-
-    A0bt = 4.13e6
-    Ebt = 112.7e3
-
-    kbv = A0bv * np.exp(-Ebv / (R * Ts))
-    kbc = A0bc * np.exp(-Ebc / (R * Ts))
-    kbt = A0bt * np.exp(-Ebt / (R * Ts))
+    kbv = Abv * np.exp(-Ebv / (R * Ts))
+    kbc = Abc * np.exp(-Ebc / (R * Ts))
+    kbt = Abt * np.exp(-Ebt / (R * Ts))
 
     Sb = -(kbv + kbc + kbt) * rhobb
 
@@ -37,10 +44,7 @@ def sc_gen(params, rhobb):
 
     Ts = Tgin
 
-    A0bc = 7.38e5
-    Ebc = 106.5e3
-
-    kbc = A0bc * np.exp(-Ebc / (R * Ts))
+    kbc = Abc * np.exp(-Ebc / (R * Ts))
 
     Sc = kbc * rhobb
 

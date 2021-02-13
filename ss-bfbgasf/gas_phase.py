@@ -177,6 +177,8 @@ def fg_factor(params, rhogin, ug):
     return fg
 
 
+# Gas phase coefficients -----------------------------------------------------
+
 def mfg_coeffs(params, afg, dz, fg, mfgin, rhogin, Mg_res, Sgs, Smgp, Smgs, ug, ugin, v):
     """
     Coefficients a, b, c, d for gas mass flux matrix.

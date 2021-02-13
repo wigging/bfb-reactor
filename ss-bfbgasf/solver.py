@@ -26,11 +26,9 @@ def solver(params):
     N = params['N']
     z, dz = _grid(params)
 
-    # Inlet properties for gas phase
+    # Inlet properties
     rhogin = gas.rhog_inlet(params)
     mfgin, ugin = gas.mfg_ug_inlet(params, rhogin)
-
-    # Inlet properties for solid phase
     mfsin, rhobbin = solid.mfs_rhobb_inlet(params, ugin)
 
     # Gas phase calculations
@@ -44,11 +42,9 @@ def solver(params):
     rhos = solid.rhos_density(params)
     sfc = solid.sfc_fuel(params)
 
-    # Set initial values for gas phase state variables
+    # Initial values for gas phase state variables
     mfg = np.full(N, mfgin)
-
-    # Set initial values for solid phase state variables
-    rhobb = np.full(N, 1e-8)
+    rhobb = np.full(N, mfsin / ugin)
     rhobc = np.full(N, 1e-8)
     v = np.full(N, ugin)
 
@@ -62,7 +58,12 @@ def solver(params):
 
         mfg_guess = np.mean(mfg)
 
-        # Gas phase calculations
+        # Solid inlet
+        vin = v[-1]
+        rhobbin = mfsin / vin
+
+        # Gas phase variables ------------------------------------------------
+
         ug = mfg / rhogin
         Fb = gas.fb_prime(params, afg, ug, ugin, umf, z)
         Mg_res = gas.mg_prime(params, afg, dz, rhogin)
@@ -71,35 +72,37 @@ def solver(params):
         Smgs = gas.betags_momentum(params, ds, sfc, rhogin, ug, v)
         fg = gas.fg_factor(params, rhogin, ug)
 
-        # Solid phase calculations
+        # Solid phase variables ----------------------------------------------
+
         Ms_res = solid.ms_res(params, Fb, rhogin, rhos)
-        Smps = solid.betaps_momentum(params, afg, ds, mfsin, rhos, v)
-        Sss = 0.0
+        Smps = solid.betaps_momentum(params, afg, ds, mfsin, rhos, rhobb, rhobc, v)
         Sb = kinetics.sb_gen(params, rhobb)
         Sc = kinetics.sc_gen(params, rhobb)
+        Sss = Sb + Sc
 
-        # Biomass mass concentration - rhobb
+        # Matrix -------------------------------------------------------------
+
         ab, bb, cb = solid.rhobb_coeffs(params, dz, rhobbin, Sb, v)
-        Ab = diags([ab, -bb[1:]], offsets=[0, 1]).toarray()
-        rhobb = np.linalg.solve(Ab, cb)
-        rhobb = np.maximum(rhobb, 0)
-
-        # Char mass concentration - rhobc
         ac, bc, cc = solid.rhobc_coeffs(dz, Sc, v)
-        Ac = diags([ac, -bc[1:]], offsets=[0, 1]).toarray()
-        rhobc = np.linalg.solve(Ac, cc)
-
-        # Solid fuel velocity - v
         av, bv, cv = solid.v_coeffs(params, dz, rhos, Ms_res, Smgs, Smps, Sss, ug, v)
-        Av = diags([av, -bv[1:]], offsets=[0, 1]).toarray()
-        v = np.linalg.solve(Av, cv)
-
-        # Gas mass flux - mfg
         am, bm, cm, dm = gas.mfg_coeffs(params, afg, dz, fg, mfgin, rhogin, Mg_res, Sgs, Smgp, Smgs, ug, ugin, v)
-        Am = diags([-am[1:], bm, cm[1:]], offsets=[-1, 0, 1]).toarray()
+
+        Ab = diags([ab, -bb[0:N - 1]], offsets=[0, 1]).toarray()
+        Ac = diags([ac, -bc[0:N - 1]], offsets=[0, 1]).toarray()
+        Av = diags([av, -bv[0:N - 1]], offsets=[0, 1]).toarray()
+        Am = diags([-am[1:N], bm, cm[0:N - 1]], offsets=[-1, 0, 1]).toarray()
+
+        # Solve --------------------------------------------------------------
+
+        rhobb = np.linalg.solve(Ab, cb)
+        rhobc = np.linalg.solve(Ac, cc)
+        v = np.linalg.solve(Av, cv)
         mfg = np.linalg.solve(Am, dm)
 
-        # Update count and guess
+        rhobb = np.maximum(rhobb, 0)
+
+        # Update count and guess ---------------------------------------------
+
         count = count + 1
         divmg = np.mean(mfg) - mfg_guess
 
