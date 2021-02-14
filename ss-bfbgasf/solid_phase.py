@@ -1,7 +1,9 @@
 import numpy as np
 
 
-# Solid phase inlet ----------------------------------------------------------
+# ----------------------------------------------------------------------------
+# Solid phase inlet
+# ----------------------------------------------------------------------------
 
 def mfs_rhobb_inlet(params, ugin):
     """
@@ -19,9 +21,11 @@ def mfs_rhobb_inlet(params, ugin):
     return mfsin, rhobbin
 
 
-# Here ----------------------------------------------------------
+# ----------------------------------------------------------------------------
+# Solid phase calculations
+# ----------------------------------------------------------------------------
 
-def ds_fuel(params):
+def ds_fuel(params, rhobb, rhobc):
     """
     Average diameter of the solid fuel particle, d𝗌 [m].
     """
@@ -43,8 +47,11 @@ def ds_fuel(params):
     rhob = (1 - wa) / (1 / rhobio - wa / rhoa)
     db = ((1 - wa) * rhobio / rhob)**(1 / 3) * dbio
 
-    ya = wa
-    yc = wc
+    # ya = wa
+    # yc = wc
+    rhoba = rhoa
+    ya = rhoba / (rhobb + rhobc + rhoba)
+    yc = rhobc / (rhobb + rhobc + rhoba)
 
     dsapp = (1 + (1.25 * (n1 * phy * (1 - Xc))**(1 / 3) - 1) * yc / (1 - wa))**(-1) * db
     ds = (ya / da + (1 - ya) / dsapp)**(-1)
@@ -52,7 +59,7 @@ def ds_fuel(params):
     return ds
 
 
-def rhos_density(params):
+def rhos_density(params, rhobb, rhobc):
     """
     here
     """
@@ -63,9 +70,13 @@ def rhos_density(params):
     wa = params['wa']
     wc = params['wc']
 
-    ya = wa
-    yc = wc
-    yb = 1 - (wa + wc + wH2O)
+    # ya = wa
+    # yc = wc
+    # yb = 1 - (wa + wc + wH2O)
+    rhoba = rhoa
+    ya = rhoba / (rhobb + rhobc + rhoba)
+    yc = rhobc / (rhobb + rhobc + rhoba)
+    yb = rhobb / (rhobb + rhobc + rhoba)
 
     rhob = (1 - wa) / (1 / rhobio - wa / rhoa)
     rhos = (ya / rhoa + yc / rhoc + yb / rhob)**(-1)
@@ -124,7 +135,9 @@ def betaps_momentum(params, afg, ds, mfsin, rhos, rhobb, rhobc, v):
     return Smps
 
 
-# Solid phase coefficients ---------------------------------------------------
+# ----------------------------------------------------------------------------
+# Solid phase coefficients
+# ----------------------------------------------------------------------------
 
 def v_coeffs(params, dz, rhos, Ms_res, Smgs, Smps, Sss, ug, v):
     """

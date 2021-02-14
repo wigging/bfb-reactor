@@ -31,15 +31,13 @@ def solver(params):
     mfgin, ugin = gas.mfg_ug_inlet(params, rhogin)
     mfsin, rhobbin = solid.mfs_rhobb_inlet(params, ugin)
 
-    # Gas phase calculations
+    # Gas phase
     afg = params['ef0']
 
-    # Fluidization calculations
+    # Fluidization
     umf = gas.umf_bed(params, rhogin)
 
-    # Solid phase calculations
-    ds = solid.ds_fuel(params)
-    rhos = solid.rhos_density(params)
+    # Solid fuel particle
     sfc = solid.sfc_fuel(params)
 
     # Initial values for gas phase state variables
@@ -53,17 +51,15 @@ def solver(params):
     divmg = 1
     torr = 1e-5
 
-    # Solve for gas phase and solid phase state variables
     while abs(divmg) > torr and count < 20:
 
         mfg_guess = np.mean(mfg)
 
-        # Solid inlet
-        vin = v[-1]
-        rhobbin = mfsin / vin
+        # Solid fuel particle
+        ds = solid.ds_fuel(params, rhobb, rhobc)
+        rhos = solid.rhos_density(params, rhobb, rhobc)
 
-        # Gas phase variables ------------------------------------------------
-
+        # Gas phase
         ug = mfg / rhogin
         Fb = gas.fb_prime(params, afg, ug, ugin, umf, z)
         Mg_res = gas.mg_prime(params, afg, dz, rhogin)
@@ -72,16 +68,14 @@ def solver(params):
         Smgs = gas.betags_momentum(params, ds, sfc, rhogin, ug, v)
         fg = gas.fg_factor(params, rhogin, ug)
 
-        # Solid phase variables ----------------------------------------------
-
+        # Solid phase
         Ms_res = solid.ms_res(params, Fb, rhogin, rhos)
         Smps = solid.betaps_momentum(params, afg, ds, mfsin, rhos, rhobb, rhobc, v)
         Sb = kinetics.sb_gen(params, rhobb)
         Sc = kinetics.sc_gen(params, rhobb)
         Sss = Sb + Sc
 
-        # Matrix -------------------------------------------------------------
-
+        # Coefficients and A matrices
         ab, bb, cb = solid.rhobb_coeffs(params, dz, rhobbin, Sb, v)
         ac, bc, cc = solid.rhobc_coeffs(dz, Sc, v)
         av, bv, cv = solid.v_coeffs(params, dz, rhos, Ms_res, Smgs, Smps, Sss, ug, v)
@@ -92,8 +86,7 @@ def solver(params):
         Av = diags([av, -bv[0:N - 1]], offsets=[0, 1]).toarray()
         Am = diags([-am[1:N], bm, cm[0:N - 1]], offsets=[-1, 0, 1]).toarray()
 
-        # Solve --------------------------------------------------------------
-
+        # Solve for state variables
         rhobb = np.linalg.solve(Ab, cb)
         rhobc = np.linalg.solve(Ac, cc)
         v = np.linalg.solve(Av, cv)
@@ -101,8 +94,7 @@ def solver(params):
 
         rhobb = np.maximum(rhobb, 0)
 
-        # Update count and guess ---------------------------------------------
-
+        # Update count and guess
         count = count + 1
         divmg = np.mean(mfg) - mfg_guess
 
