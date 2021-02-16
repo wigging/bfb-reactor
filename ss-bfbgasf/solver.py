@@ -40,8 +40,9 @@ def solver(params):
     # Solid fuel particle
     sfc = solid.sfc_fuel(params)
 
-    # Initial values for gas phase state variables
+    # Initial values for gas and solid phase state variables
     mfg = np.full(N, mfgin)
+    rhoba = np.full(N, 1e-8)
     rhobb = np.full(N, mfsin / ugin)
     rhobc = np.full(N, 1e-8)
     v = np.full(N, ugin)
@@ -56,8 +57,8 @@ def solver(params):
         mfg_guess = np.mean(mfg)
 
         # Solid fuel particle
-        ds = solid.ds_fuel(params, rhobb, rhobc)
-        rhos = solid.rhos_density(params, rhobb, rhobc)
+        ds, rhos = solid.ds_rhos_fuel(params, rhoba, rhobb, rhobc)
+        breakpoint()
 
         # Gas phase
         ug = mfg / rhogin
@@ -69,24 +70,29 @@ def solver(params):
         fg = gas.fg_factor(params, rhogin, ug)
 
         # Solid phase
+        rhobs = rhoba + rhobb + rhobc
         Ms_res = solid.ms_res(params, Fb, rhogin, rhos)
-        Smps = solid.betaps_momentum(params, afg, ds, mfsin, rhos, rhobb, rhobc, v)
+        Smps = solid.betaps_momentum(params, afg, ds, mfsin, rhos, rhobs, v)
+        Sa = kinetics.sa_gen(params, rhobc)
         Sb = kinetics.sb_gen(params, rhobb)
         Sc = kinetics.sc_gen(params, rhobb)
         Sss = Sb + Sc
 
         # Coefficients and A matrices
+        aa, ba, ca = solid.rhoba_coeffs(dz, Sa, v)
         ab, bb, cb = solid.rhobb_coeffs(params, dz, rhobbin, Sb, v)
         ac, bc, cc = solid.rhobc_coeffs(dz, Sc, v)
         av, bv, cv = solid.v_coeffs(params, dz, rhos, Ms_res, Smgs, Smps, Sss, ug, v)
         am, bm, cm, dm = gas.mfg_coeffs(params, afg, dz, fg, mfgin, rhogin, Mg_res, Sgs, Smgp, Smgs, ug, ugin, v)
 
+        Aa = diags([aa, -ba[0:N - 1]], offsets=[0, 1]).toarray()
         Ab = diags([ab, -bb[0:N - 1]], offsets=[0, 1]).toarray()
         Ac = diags([ac, -bc[0:N - 1]], offsets=[0, 1]).toarray()
         Av = diags([av, -bv[0:N - 1]], offsets=[0, 1]).toarray()
         Am = diags([-am[1:N], bm, cm[0:N - 1]], offsets=[-1, 0, 1]).toarray()
 
         # Solve for state variables
+        rhoba = np.linalg.solve(Aa, ca)
         rhobb = np.linalg.solve(Ab, cb)
         rhobc = np.linalg.solve(Ac, cc)
         v = np.linalg.solve(Av, cv)
@@ -107,6 +113,7 @@ def solver(params):
         'z': z,
         'mfg': mfg,
         'mfgin': mfgin,
+        'rhoba': rhoba,
         'rhobb': rhobb,
         'rhobbin': rhobbin,
         'rhobc': rhobc,

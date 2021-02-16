@@ -40,19 +40,22 @@ def plot_mfg(results):
     _style_axis(ax)
 
 
-def plot_rhobb_rhobc(results):
+def plot_rhoba_rhobb_rhobc(results):
     """
     Plot biomass and char concentrations.
     """
+    rhoba = results['rhoba']
     rhobb = results['rhobb']
     rhobbin = results['rhobbin']
     rhobc = results['rhobc']
     z = results['z']
 
+    rhobaz = np.concatenate((rhoba, [0]))
     rhobbz = np.concatenate((rhobb, [rhobbin]))
     rhobcz = np.concatenate((rhobc, [0]))
 
     _, ax = plt.subplots(tight_layout=True)
+    ax.plot(z, rhobaz, label=r'ρ̅𝖺')
     ax.plot(z, rhobbz, label=r'ρ̅𝖻')
     ax.plot(z, rhobcz, label='ρ̅𝖼')
     ax.set_xlabel('Bed height, z [m]')

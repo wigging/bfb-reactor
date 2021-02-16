@@ -25,63 +25,34 @@ def mfs_rhobb_inlet(params, ugin):
 # Solid phase calculations
 # ----------------------------------------------------------------------------
 
-def ds_fuel(params, rhobb, rhobc):
+def ds_rhos_fuel(params, rhoba, rhobb, rhobc):
     """
-    Average diameter of the solid fuel particle, d𝗌 [m].
+    Average diameter of the solid fuel particle d𝗌 [m] and solid fuel density ρ𝗌 [kg/m³].
     """
     db0 = params['db0']
     lb = params['lb']
-    n1 = params['n1']
     rhoa = params['rhoa']
     rhoc = params['rhoc']
     rhobio = params['rhobio']
     wa = params['wa']
     wc = params['wc']
-    Xc = 0.5
 
     dbio = 3 * db0 * lb / (2 * lb + db0)
     da = (wa * rhobio / rhoa)**(1 / 3) * dbio
-
-    phy = rhoc / (rhobio * (wc + wa))
+    dc = (wc * rhobio / rhoc)**(1 / 3) * dbio
 
     rhob = (1 - wa) / (1 / rhobio - wa / rhoa)
-    db = ((1 - wa) * rhobio / rhob)**(1 / 3) * dbio
+    db = ((1 - wa) * (rhobio / rhob))**(1 / 3) * dbio
 
-    # ya = wa
-    # yc = wc
-    rhoba = rhoa
-    ya = rhoba / (rhobb + rhobc + rhoba)
-    yc = rhobc / (rhobb + rhobc + rhoba)
-
-    dsapp = (1 + (1.25 * (n1 * phy * (1 - Xc))**(1 / 3) - 1) * yc / (1 - wa))**(-1) * db
-    ds = (ya / da + (1 - ya) / dsapp)**(-1)
-
-    return ds
-
-
-def rhos_density(params, rhobb, rhobc):
-    """
-    here
-    """
-    rhoa = params['rhoa']
-    rhobio = params['rhobio']
-    rhoc = params['rhoc']
-    wH2O = params['wH2O']
-    wa = params['wa']
-    wc = params['wc']
-
-    # ya = wa
-    # yc = wc
-    # yb = 1 - (wa + wc + wH2O)
-    rhoba = rhoa
     ya = rhoba / (rhobb + rhobc + rhoba)
     yc = rhobc / (rhobb + rhobc + rhoba)
     yb = rhobb / (rhobb + rhobc + rhoba)
 
-    rhob = (1 - wa) / (1 / rhobio - wa / rhoa)
+    ds = (ya / da + yc / dc + yb / db)**(-1)
+
     rhos = (ya / rhoa + yc / rhoc + yb / rhob)**(-1)
 
-    return rhos
+    return ds, rhos
 
 
 def sfc_fuel(params):
@@ -109,7 +80,7 @@ def ms_res(params, Fb, rhogin, rhos):
     return Ms_res
 
 
-def betaps_momentum(params, afg, ds, mfsin, rhos, rhobb, rhobc, v):
+def betaps_momentum(params, afg, ds, mfsin, rhos, rhobs, v):
     """
     Solid fuel to inert bed material momentum transfer coefficient β𝗉𝗌
     [N⋅s/m⁴]. Momentum transfer due to collision with inert bed particles.
@@ -121,15 +92,14 @@ def betaps_momentum(params, afg, ds, mfsin, rhos, rhobb, rhobc, v):
     rhop = params['rhop']
 
     epb = 1 - ef0
-    rhosb = rhobb + rhobc
 
-    Yb = 1 / (1 + epb * rhos / rhosb)
+    Yb = 1 / (1 + epb * rhos / rhobs)
     afs = Yb * (1 - ef0)
 
     rhopb = epb * rhop
 
     g0 = 1 / afg + 3 * ds * dp / (afg**2 * (dp + ds)) * (afs / ds + epb / dp)
-    cs = 3 * np.pi * (1 + e) * (0.5 + cf * np.pi / 8) * (dp + ds)**2 / (rhop * dp**3 + rhos * ds**3) * rhosb * rhopb * g0
+    cs = 3 * np.pi * (1 + e) * (0.5 + cf * np.pi / 8) * (dp + ds)**2 / (rhop * dp**3 + rhos * ds**3) * rhobs * rhopb * g0
     Smps = cs * abs(v)
 
     return Smps
@@ -155,9 +125,20 @@ def v_coeffs(params, dz, rhos, Ms_res, Smgs, Smps, Sss, ug, v):
     return a, b, c
 
 
+def rhoba_coeffs(dz, Sa, v):
+    """
+    Coefficients a, b, c, for the ash mass concentration matrix.
+    """
+    a = v
+    b = v
+    c = dz * Sa
+
+    return a, b, c
+
+
 def rhobb_coeffs(params, dz, rhobbin, Sb, v):
     """
-    Coefficients a, b, c for biomass mass concentration matrix.
+    Coefficients a, b, c for the biomass mass concentration matrix.
     """
     N = params['N']
 
@@ -171,7 +152,7 @@ def rhobb_coeffs(params, dz, rhobbin, Sb, v):
 
 def rhobc_coeffs(dz, Sc, v):
     """
-    Coefficients a, b, c for char mass concentration matrix.
+    Coefficients a, b, c for the char mass concentration matrix.
     """
     a = v
     b = v
