@@ -58,7 +58,6 @@ def solver(params):
 
         # Solid fuel particle
         ds, rhos = solid.ds_rhos_fuel(params, rhoba, rhobb, rhobc)
-        breakpoint()
 
         # Gas phase
         ug = mfg / rhogin
@@ -85,9 +84,10 @@ def solver(params):
         av, bv, cv = solid.v_coeffs(params, dz, rhos, Ms_res, Smgs, Smps, Sss, ug, v)
         am, bm, cm, dm = gas.mfg_coeffs(params, afg, dz, fg, mfgin, rhogin, Mg_res, Sgs, Smgp, Smgs, ug, ugin, v)
 
-        Aa = diags([aa, -ba[0:N - 1]], offsets=[0, 1]).toarray()
-        Ab = diags([ab, -bb[0:N - 1]], offsets=[0, 1]).toarray()
+        Aa = diags([aa, -ba[1:]], offsets=[0, 1]).toarray()
+        Ab = diags([ab, -bb[1:]], offsets=[0, 1]).toarray()
         Ac = diags([ac, -bc[0:N - 1]], offsets=[0, 1]).toarray()
+        # Ac = diags([ac, -bc[1:]], offsets=[0, 1]).toarray()
         Av = diags([av, -bv[0:N - 1]], offsets=[0, 1]).toarray()
         Am = diags([-am[1:N], bm, cm[0:N - 1]], offsets=[-1, 0, 1]).toarray()
 
