@@ -49,8 +49,7 @@ def sa_gen(params, rhobc):
     k62 = 4.15e3 * np.exp(-11420 / Ts)
     r6 = k61 / (1 + xCO / (k62 * xCO2)) * (rhobc / M_C * 1000)
 
-    # r7 = 6.11e-3 * np.exp(-80333 / (R * Ts)) * (rhobh2 / M_H2 * 1000) * (rhobc / M_C * 1000)
-    r7 = 6.11 * 1e3 * np.exp(-80333 / (R * Ts)) * (rhobh2 / M_H2) * (rhobc / M_C)
+    r7 = 6.11e-3 * np.exp(-80333 / (R * Ts)) * (rhobh2 / M_H2 * 1000) * (rhobc / M_C * 1000)
 
     Sa = (wa / wc) * (r5 + r6 + r7) * M_C * (1 / 1000)
 
@@ -73,16 +72,39 @@ def sb_gen(params, rhobb):
     return Sb
 
 
-def sc_gen(params, rhobb):
+def sc_gen(params, rhobb, rhobc):
     """
     Char mass generation rate Sc [kg/m³⋅s].
     """
+    Pa = params['Pa']
     R = params['R']
     Tgin = params['Tgin']
 
+    p = Pa
+    Ts = Tgin
+    Xc = 0.5
+    rhobh2 = 0.01
+    xCO = 0.01
+    xCO2 = 0.01
+    xH2O = 0.01
+    xH2 = 0.01
+
     Ts = Tgin
     kbc = Abc * np.exp(-Ebc / (R * Ts))
+
+    k51 = 1.25e5 * np.exp(-28000 / Ts)
+    k52 = 3.26e-4
+    k53 = 0.313 * np.exp(-10120 / Ts)
+    r5 = (k51 * xH2O) / (1 / p + k52 * xH2 + k53 * xH2O) * (1 - Xc) * (rhobc / M_C * 1000)
+
+    k61 = 3.6e5 * np.exp(-20130 / Ts)
+    k62 = 4.15e3 * np.exp(-11420 / Ts)
+    r6 = k61 / (1 + xCO / (k62 * xCO2)) * (rhobc / M_C * 1000)
+
+    r7 = 6.11e-3 * np.exp(-80333 / (R * Ts)) * (rhobh2 / M_H2 * 1000) * (rhobc / M_C * 1000)
+
     Sc = kbc * rhobb
+    # Sc = kbc * rhobb - (r5 + r6 + r7) * M_C * (1 / 1000)
 
     return Sc
 

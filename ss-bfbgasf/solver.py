@@ -74,8 +74,8 @@ def solver(params):
         Smps = solid.betaps_momentum(params, afg, ds, mfsin, rhos, rhobs, v)
         Sa = kinetics.sa_gen(params, rhobc)
         Sb = kinetics.sb_gen(params, rhobb)
-        Sc = kinetics.sc_gen(params, rhobb)
-        Sss = Sb + Sc
+        Sc = kinetics.sc_gen(params, rhobb, rhobc)
+        Sss = Sb + Sc + Sa
 
         # Coefficients and A matrices
         aa, ba, ca = solid.rhoba_coeffs(dz, Sa, v)
