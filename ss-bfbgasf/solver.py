@@ -32,7 +32,7 @@ def solver(params):
     mfsin, rhobbin = solid.mfs_rhobb_inlet(params, ugin)
 
     # Gas phase
-    afg = params['ef0']
+    # afg = params['ef0']
 
     # Fluidization
     umf = gas.umf_bed(params, rhogin)
@@ -42,9 +42,9 @@ def solver(params):
 
     # Initial values for gas and solid phase state variables
     mfg = np.full(N, mfgin)
-    rhoba = np.full(N, 1e-8)
+    rhoab = np.full(N, 1e-8)
     rhobb = np.full(N, mfsin / ugin)
-    rhobc = np.full(N, 1e-8)
+    rhocb = np.full(N, 1e-8)
     v = np.full(N, ugin)
 
     # Set count and tolerance for solver iterations
@@ -57,32 +57,35 @@ def solver(params):
         mfg_guess = np.mean(mfg)
 
         # Solid fuel particle
-        ds, rhos = solid.ds_rhos_fuel(params, rhoba, rhobb, rhobc)
+        ds, rhos = solid.ds_rhos_fuel(params, rhoab, rhobb, rhocb)
+
+        # Void fractions
+        rhosb = rhoab + rhobb + rhocb
+        afp, afs = solid.alpha_fracs(params, rhos, rhosb)
 
         # Gas phase
         ug = mfg / rhogin
-        Fb = gas.fb_prime(params, afg, ug, ugin, umf, z)
+        Fb = gas.fb_prime(params, ug, ugin, umf, z)
         Sgs = 0.0
-        Smgp = gas.betagp_momentum(params, rhogin, ug)
+        Smgp = gas.betagp_momentum(params, afp, rhogin, ug)
         Smgs = gas.betags_momentum(params, ds, sfc, rhogin, ug, v)
         fg = gas.fg_factor(params, rhogin, ug)
 
         # Solid phase
-        rhobs = rhoba + rhobb + rhobc
         Ms_res = solid.ms_res(params, Fb, rhogin, rhos)
-        Smps = solid.betaps_momentum(params, afg, ds, mfsin, rhos, rhobs, v)
-        Sa = kinetics.sa_gen(params, rhobc)
+        Smps = solid.betaps_momentum(params, afs, ds, mfsin, rhos, rhosb, v)
+        Sa = kinetics.sa_gen(params, rhocb)
         Sb = kinetics.sb_gen(params, rhobb)
-        Sc = kinetics.sc_gen(params, rhobb, rhobc)
+        Sc = kinetics.sc_gen(params, rhobb, rhocb)
         Sss = Sb + Sc + Sa
 
         # Coefficients and A matrices
-        aa, ba, ca = solid.rhoba_coeffs(dz, Sa, v)
+        aa, ba, ca = solid.rhoab_coeffs(dz, Sa, v)
         ab, bb, cb = solid.rhobb_coeffs(params, dz, rhobbin, Sb, v)
-        ac, bc, cc = solid.rhobc_coeffs(dz, Sc, v)
+        ac, bc, cc = solid.rhocb_coeffs(dz, Sc, v)
         av, bv, cv = solid.v_coeffs(params, dz, rhos, Ms_res, Smgs, Smps, Sss, ug, v)
         # am, bm, cm, dm = gas.mfg_coeffs(params, afg, dz, fg, mfgin, rhogin, Sgs, Smgp, Smgs, ug, ugin, v)
-        am, bm, cm, dm = gas.mfg_coeffs2(params, dz, fg, mfgin, rhogin, rhos, rhobs, Sgs, Smgp, Smgs, ug, ugin, v)
+        am, bm, cm, dm = gas.mfg_coeffs2(params, afs, dz, fg, mfgin, rhogin, Sgs, Smgp, Smgs, ug, ugin, v)
 
         Aa = diags([aa, -ba[1:]], offsets=[0, 1]).toarray()
         Ab = diags([ab, -bb[1:]], offsets=[0, 1]).toarray()
@@ -92,9 +95,9 @@ def solver(params):
         Am = diags([-am[1:N], bm, cm[0:N - 1]], offsets=[-1, 0, 1]).toarray()
 
         # Solve for state variables
-        rhoba = np.linalg.solve(Aa, ca)
+        rhoab = np.linalg.solve(Aa, ca)
         rhobb = np.linalg.solve(Ab, cb)
-        rhobc = np.linalg.solve(Ac, cc)
+        rhocb = np.linalg.solve(Ac, cc)
         v = np.linalg.solve(Av, cv)
         mfg = np.linalg.solve(Am, dm)
 
@@ -113,10 +116,10 @@ def solver(params):
         'z': z,
         'mfg': mfg,
         'mfgin': mfgin,
-        'rhoba': rhoba,
+        'rhoab': rhoab,
         'rhobb': rhobb,
         'rhobbin': rhobbin,
-        'rhobc': rhobc,
+        'rhocb': rhocb,
         'ug': ug,
         'ugin': ugin,
         'v': v

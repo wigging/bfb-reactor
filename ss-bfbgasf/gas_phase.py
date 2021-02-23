@@ -1,8 +1,6 @@
 import numpy as np
 
 
-# Gas phase inlet ------------------------------------------------------------
-
 def rhog_inlet(params):
     """
     Gas density at inlet.
@@ -36,8 +34,6 @@ def mfg_ug_inlet(params, rhogin):
     return mfgin, ugin
 
 
-# Fluidization ---------------------------------------------------------------
-
 def umf_bed(params, rhogin):
     """
     Minimum fluidization velocity U𝗆𝖿 [m/s] for the inert bed material.
@@ -54,21 +50,21 @@ def umf_bed(params, rhogin):
     return umf
 
 
-# Gas phase calculations -----------------------------------------------------
-
-def fb_prime(params, afg, ug, ugin, umf, z):
+def fb_prime(params, ug, ugin, umf, z):
     """
     Force Fʙ́ [N/m³] exerted on the fuel particles by the inert bed material
     due to bubble flow.
     """
     D = params['D']
     N = params['N']
+    ef0 = params['ef0']
     emf = params['emf']
     rhop = params['rhop']
 
+    ef = ef0
     thetaw = 0.25
 
-    ugmean = np.mean(np.concatenate(([ugin], afg * ug)))
+    ugmean = np.mean(np.concatenate(([ugin], ef * ug)))
     usf = max(ugin, ugmean)
 
     db = 0.00853 * (1 + 27.2 * (usf - umf))**(1 / 3) * (1 + 6.84 * z)**1.21
@@ -84,7 +80,7 @@ def fb_prime(params, afg, ug, ugin, umf, z):
     return Fb
 
 
-def betagp_momentum(params, rhogin, ug):
+def betagp_momentum(params, afp, rhogin, ug):
     """
     Gas to inert bed material momentum transfer coefficient β𝗀𝗉 [N⋅s/m⁴].
     """
@@ -94,10 +90,12 @@ def betagp_momentum(params, rhogin, ug):
     phi = params['phi']
 
     rhog = rhogin
-    epb = 1 - ef0
     ef = ef0
     mu = mugin
-    Smgp = 150 * epb**2 * mu / (ef * (phi * dp)**2) + 1.75 * epb / (phi * dp) * rhog * abs(ug)
+
+    a = 150 * ((afp * (1 - ef)) / (ef * (phi * dp)**2)) * mu
+    b = 1.75 * (afp / (phi * dp)) * rhog * abs(ug)
+    Smgp = a + b
 
     return Smgp
 
@@ -147,8 +145,6 @@ def fg_factor(params, rhogin, ug):
     return fg
 
 
-# Gas phase coefficients -----------------------------------------------------
-
 def mfg_coeffs(params, afg, dz, fg, mfgin, rhogin, Sgs, Smgp, Smgs, ug, ugin, v):
     """
     Coefficients a, b, c, d for gas mass flux matrix.
@@ -190,7 +186,7 @@ def mfg_coeffs(params, afg, dz, fg, mfgin, rhogin, Sgs, Smgp, Smgs, ug, ugin, v)
     return a, b, c, d
 
 
-def mfg_coeffs2(params, dz, fg, mfgin, rhogin, rhos, rhosb, Sgs, Smgp, Smgs, ug, ugin, v):
+def mfg_coeffs2(params, afs, dz, fg, mfgin, rhogin, Sgs, Smgp, Smgs, ug, ugin, v):
     """
     Coefficients a, b, c, d for gas mass flux matrix. (Version 2)
     """
@@ -203,6 +199,7 @@ def mfg_coeffs2(params, dz, fg, mfgin, rhogin, rhos, rhosb, Sgs, Smgp, Smgs, ug,
     g = params['g']
     rhop = params['rhop']
 
+    ef = ef0
     rhog = rhogin
     rhogb = rhogin
 
@@ -213,14 +210,10 @@ def mfg_coeffs2(params, dz, fg, mfgin, rhogin, rhos, rhosb, Sgs, Smgp, Smgs, ug,
     dp = np.zeros(len(P))
     dp[:-1] = np.diff(P)
 
-    ef = ef0
-    Yb = 1 / (1 + (1 - ef) * rhos / rhosb)
-    alphas = Yb * (1 - ef)
-
     a = np.concatenate(([ugin], ug[0:N - 1]))
 
-    b1 = ug[0] - ugin - (2 * dz / rhogb) * (alphas[0] * Smgs[0] - Smgp[0] + Sgs)
-    binner = ug[1:N] - ug[0:N - 1] - (2 * dz / rhogb) * (alphas[1:N] * Smgs[1:N] - Smgp[1:N] + Sgs)
+    b1 = ug[0] - ugin - (2 * dz / rhogb) * (afs[0] * Smgs[0] - Smgp[0] + Sgs)
+    binner = ug[1:N] - ug[0:N - 1] - (2 * dz / rhogb) * (afs[1:N] * Smgs[1:N] - Smgp[1:N] + Sgs)
     b = np.concatenate(([b1], binner))
 
     c = ug
@@ -228,7 +221,7 @@ def mfg_coeffs2(params, dz, fg, mfgin, rhogin, rhos, rhosb, Sgs, Smgp, Smgs, ug,
 
     d1 = g * (ef * (1 - ef) * rhop - rhogb)
     d2 = 2 * fg * rhogb / D * ug * abs(ug)
-    d = 2 * dz * (d1 + alphas * Smgs * v - d2 - ef * dp / dz)
+    d = 2 * dz * (d1 + afs * Smgs * v - d2 - ef * dp / dz)
     d[0] = d[0] + ugin * mfgin
 
     return a, b, c, d

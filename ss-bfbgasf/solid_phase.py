@@ -1,10 +1,6 @@
 import numpy as np
 
 
-# ----------------------------------------------------------------------------
-# Solid phase inlet
-# ----------------------------------------------------------------------------
-
 def mfs_rhobb_inlet(params, ugin):
     """
     h
@@ -21,9 +17,20 @@ def mfs_rhobb_inlet(params, ugin):
     return mfsin, rhobbin
 
 
-# ----------------------------------------------------------------------------
-# Solid phase calculations
-# ----------------------------------------------------------------------------
+def alpha_fracs(params, rhos, rhosb):
+    """
+    Void fractions α𝗉 [-] and α𝗌 [-].
+    """
+    ef0 = params['ef0']
+    ef = ef0
+
+    afp = 1 - ef
+
+    Yb = 1 / (1 + (1 - ef) * rhos / rhosb)
+    afs = Yb * (1 - ef)
+
+    return afp, afs
+
 
 def ds_rhos_fuel(params, rhoba, rhobb, rhobc):
     """
@@ -80,7 +87,7 @@ def ms_res(params, Fb, rhogin, rhos):
     return Ms_res
 
 
-def betaps_momentum(params, afg, ds, mfsin, rhos, rhobs, v):
+def betaps_momentum(params, afs, ds, mfsin, rhos, rhosb, v):
     """
     Solid fuel to inert bed material momentum transfer coefficient β𝗉𝗌
     [N⋅s/m⁴]. Momentum transfer due to collision with inert bed particles.
@@ -91,23 +98,16 @@ def betaps_momentum(params, afg, ds, mfsin, rhos, rhobs, v):
     ef0 = params['ef0']
     rhop = params['rhop']
 
+    ef = ef0
     epb = 1 - ef0
-
-    Yb = 1 / (1 + epb * rhos / rhobs)
-    afs = Yb * (1 - ef0)
-
     rhopb = epb * rhop
 
-    g0 = 1 / afg + 3 * ds * dp / (afg**2 * (dp + ds)) * (afs / ds + epb / dp)
-    cs = 3 * np.pi * (1 + e) * (0.5 + cf * np.pi / 8) * (dp + ds)**2 / (rhop * dp**3 + rhos * ds**3) * rhobs * rhopb * g0
+    g0 = 1 / ef + 3 * ds * dp / (ef**2 * (dp + ds)) * (afs / ds + epb / dp)
+    cs = 3 * np.pi * (1 + e) * (0.5 + cf * np.pi / 8) * (dp + ds)**2 / (rhop * dp**3 + rhos * ds**3) * rhosb * rhopb * g0
     Smps = cs * abs(v)
 
     return Smps
 
-
-# ----------------------------------------------------------------------------
-# Solid phase coefficients
-# ----------------------------------------------------------------------------
 
 def v_coeffs(params, dz, rhos, Ms_res, Smgs, Smps, Sss, ug, v):
     """
@@ -125,7 +125,7 @@ def v_coeffs(params, dz, rhos, Ms_res, Smgs, Smps, Sss, ug, v):
     return a, b, c
 
 
-def rhoba_coeffs(dz, Sa, v):
+def rhoab_coeffs(dz, Sa, v):
     """
     Coefficients a, b, c, for the ash mass concentration matrix.
     """
@@ -150,7 +150,7 @@ def rhobb_coeffs(params, dz, rhobbin, Sb, v):
     return a, b, c
 
 
-def rhobc_coeffs(dz, Sc, v):
+def rhocb_coeffs(dz, Sc, v):
     """
     Coefficients a, b, c for the char mass concentration matrix.
     """

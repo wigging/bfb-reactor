@@ -30,7 +30,7 @@ def main():
 
     plotter.plot_ug_v(results)
     plotter.plot_mfg(results)
-    plotter.plot_rhoba_rhobb_rhobc(results)
+    plotter.plot_rhoab_rhobb_rhocb(results)
     plotter.show_plots()
 
 
