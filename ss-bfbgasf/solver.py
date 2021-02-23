@@ -62,7 +62,6 @@ def solver(params):
         # Gas phase
         ug = mfg / rhogin
         Fb = gas.fb_prime(params, afg, ug, ugin, umf, z)
-        Mg_res = gas.mg_prime(params, afg, dz, rhogin)
         Sgs = 0.0
         Smgp = gas.betagp_momentum(params, rhogin, ug)
         Smgs = gas.betags_momentum(params, ds, sfc, rhogin, ug, v)
@@ -82,7 +81,7 @@ def solver(params):
         ab, bb, cb = solid.rhobb_coeffs(params, dz, rhobbin, Sb, v)
         ac, bc, cc = solid.rhobc_coeffs(dz, Sc, v)
         av, bv, cv = solid.v_coeffs(params, dz, rhos, Ms_res, Smgs, Smps, Sss, ug, v)
-        am, bm, cm, dm = gas.mfg_coeffs(params, afg, dz, fg, mfgin, rhogin, Mg_res, Sgs, Smgp, Smgs, ug, ugin, v)
+        am, bm, cm, dm = gas.mfg_coeffs(params, afg, dz, fg, mfgin, rhogin, Sgs, Smgp, Smgs, ug, ugin, v)
 
         Aa = diags([aa, -ba[1:]], offsets=[0, 1]).toarray()
         Ab = diags([ab, -bb[1:]], offsets=[0, 1]).toarray()

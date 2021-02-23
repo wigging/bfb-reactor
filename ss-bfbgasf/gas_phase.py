@@ -84,36 +84,6 @@ def fb_prime(params, afg, ug, ugin, umf, z):
     return Fb
 
 
-def mg_prime(params, afg, dz, rhogin):
-    """
-    Gas phase gravity and pressure momentum transfer.
-    """
-    R = params['R']
-    Mgin = params['Mgin']
-    N = params['N']
-    Tgin = params['Tgin']
-    ef0 = params['ef0']
-    g = params['g']
-    rhop = params['rhop']
-
-    rhog = rhogin
-    rhogb = rhogin
-
-    Tg = np.full(N, Tgin)
-    Mg = np.full(N, Mgin)
-    P = R * rhog * Tg / Mg * 1e3
-
-    DPg_inner = afg / dz * (P[1:N] - P[0:N - 1])
-    DPg_N = 0
-
-    epb = 1 - ef0
-    Mg_resinner = g * (afg * epb * rhop - rhogb) - DPg_inner
-    Mg_resN = g * (afg * epb * rhop - rhogb) - DPg_N
-    Mg_res = np.concatenate((Mg_resinner, [Mg_resN]))
-
-    return Mg_res
-
-
 def betagp_momentum(params, rhogin, ug):
     """
     Gas to inert bed material momentum transfer coefficient β𝗀𝗉 [N⋅s/m⁴].
@@ -179,14 +149,31 @@ def fg_factor(params, rhogin, ug):
 
 # Gas phase coefficients -----------------------------------------------------
 
-def mfg_coeffs(params, afg, dz, fg, mfgin, rhogin, Mg_res, Sgs, Smgp, Smgs, ug, ugin, v):
+def mfg_coeffs(params, afg, dz, fg, mfgin, rhogin, Sgs, Smgp, Smgs, ug, ugin, v):
     """
     Coefficients a, b, c, d for gas mass flux matrix.
     """
     D = params['D']
     N = params['N']
+    R = params['R']
+    Mgin = params['Mgin']
+    Tgin = params['Tgin']
+    ef0 = params['ef0']
+    g = params['g']
+    rhop = params['rhop']
 
+    rhog = rhogin
     rhogb = rhogin
+
+    Tg = np.full(N, Tgin)
+    Mg = np.full(N, Mgin)
+    P = R * rhog * Tg / Mg * 1e3
+
+    dp = np.zeros(len(P))
+    dp[:-1] = afg / dz * np.diff(P)
+
+    epb = 1 - ef0
+    Mg_res = g * (afg * epb * rhop - rhogb) - dp
 
     a = np.concatenate(([ugin], ug[0:N - 1]))
     b1 = ug[0] - ugin - 2 * dz / rhogb * (afg * Smgs[0] - Smgp[0] + 2 * fg[0] / D * abs(ug[0]) + Sgs)
