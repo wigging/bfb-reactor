@@ -81,7 +81,8 @@ def solver(params):
         ab, bb, cb = solid.rhobb_coeffs(params, dz, rhobbin, Sb, v)
         ac, bc, cc = solid.rhobc_coeffs(dz, Sc, v)
         av, bv, cv = solid.v_coeffs(params, dz, rhos, Ms_res, Smgs, Smps, Sss, ug, v)
-        am, bm, cm, dm = gas.mfg_coeffs(params, afg, dz, fg, mfgin, rhogin, Sgs, Smgp, Smgs, ug, ugin, v)
+        # am, bm, cm, dm = gas.mfg_coeffs(params, afg, dz, fg, mfgin, rhogin, Sgs, Smgp, Smgs, ug, ugin, v)
+        am, bm, cm, dm = gas.mfg_coeffs2(params, dz, fg, mfgin, rhogin, rhos, rhobs, Sgs, Smgp, Smgs, ug, ugin, v)
 
         Aa = diags([aa, -ba[1:]], offsets=[0, 1]).toarray()
         Ab = diags([ab, -bb[1:]], offsets=[0, 1]).toarray()
