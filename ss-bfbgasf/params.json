@@ -49,6 +49,7 @@
     // Input variables
     "mgin": 1.0e-3,
     "Tgin": 1100,
+    "Tsin": 300,
     "msin": 5.0e-4,
 
     // Grid points

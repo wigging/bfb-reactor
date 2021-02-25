@@ -21,18 +21,16 @@ Abt = 4.13e6    # biomass -> tar
 Ebt = 112.7e3
 
 
-def sa_gen(params, rhobc):
+def sa_gen(params, rhocb, Ts):
     """
     Ash mass generation rate Sa [kg/m³⋅s].
     """
     Pa = params['Pa']
     R = params['R']
-    Tgin = params['Tgin']
     wa = params['wa']
     wc = params['wc']
 
     p = Pa
-    Ts = Tgin
     Xc = 0.5
     rhobh2 = 0.01
     xCO = 0.01
@@ -43,27 +41,25 @@ def sa_gen(params, rhobc):
     k51 = 1.25e5 * np.exp(-28000 / Ts)
     k52 = 3.26e-4
     k53 = 0.313 * np.exp(-10120 / Ts)
-    r5 = (k51 * xH2O) / (1 / p + k52 * xH2 + k53 * xH2O) * (1 - Xc) * (rhobc / M_C * 1000)
+    r5 = (k51 * xH2O) / (1 / p + k52 * xH2 + k53 * xH2O) * (1 - Xc) * (rhocb / M_C * 1000)
 
     k61 = 3.6e5 * np.exp(-20130 / Ts)
     k62 = 4.15e3 * np.exp(-11420 / Ts)
-    r6 = k61 / (1 + xCO / (k62 * xCO2)) * (rhobc / M_C * 1000)
+    r6 = k61 / (1 + xCO / (k62 * xCO2)) * (rhocb / M_C * 1000)
 
-    r7 = 6.11e-3 * np.exp(-80333 / (R * Ts)) * (rhobh2 / M_H2 * 1000) * (rhobc / M_C * 1000)
+    r7 = 6.11e-3 * np.exp(-80333 / (R * Ts)) * (rhobh2 / M_H2 * 1000) * (rhocb / M_C * 1000)
 
     Sa = (wa / wc) * (r5 + r6 + r7) * M_C * (1 / 1000)
 
     return Sa
 
 
-def sb_gen(params, rhobb):
+def sb_gen(params, rhobb, Ts):
     """
     Biomass mass generation rate Sb [kg/m³⋅s].
     """
     R = params['R']
-    Tgin = params['Tgin']
 
-    Ts = Tgin
     kbv = Abv * np.exp(-Ebv / (R * Ts))
     kbc = Abc * np.exp(-Ebc / (R * Ts))
     kbt = Abt * np.exp(-Ebt / (R * Ts))
@@ -72,16 +68,14 @@ def sb_gen(params, rhobb):
     return Sb
 
 
-def sc_gen(params, rhobb, rhobc):
+def sc_gen(params, rhobb, rhocb, Ts):
     """
     Char mass generation rate Sc [kg/m³⋅s].
     """
     Pa = params['Pa']
     R = params['R']
-    Tgin = params['Tgin']
 
     p = Pa
-    Ts = Tgin
     Xc = 0.5
     rhobh2 = 0.01
     xCO = 0.01
@@ -89,34 +83,30 @@ def sc_gen(params, rhobb, rhobc):
     xH2O = 0.01
     xH2 = 0.01
 
-    Ts = Tgin
     kbc = Abc * np.exp(-Ebc / (R * Ts))
 
     k51 = 1.25e5 * np.exp(-28000 / Ts)
     k52 = 3.26e-4
     k53 = 0.313 * np.exp(-10120 / Ts)
-    r5 = (k51 * xH2O) / (1 / p + k52 * xH2 + k53 * xH2O) * (1 - Xc) * (rhobc / M_C * 1000)
+    r5 = (k51 * xH2O) / (1 / p + k52 * xH2 + k53 * xH2O) * (1 - Xc) * (rhocb / M_C * 1000)
 
     k61 = 3.6e5 * np.exp(-20130 / Ts)
     k62 = 4.15e3 * np.exp(-11420 / Ts)
-    r6 = k61 / (1 + xCO / (k62 * xCO2)) * (rhobc / M_C * 1000)
+    r6 = k61 / (1 + xCO / (k62 * xCO2)) * (rhocb / M_C * 1000)
 
-    r7 = 6.11e-3 * np.exp(-80333 / (R * Ts)) * (rhobh2 / M_H2 * 1000) * (rhobc / M_C * 1000)
+    r7 = 6.11e-3 * np.exp(-80333 / (R * Ts)) * (rhobh2 / M_H2 * 1000) * (rhocb / M_C * 1000)
 
-    Sc = kbc * rhobb
-    # Sc = kbc * rhobb - (r5 + r6 + r7) * M_C * (1 / 1000)
+    Sc = kbc * rhobb - (r5 + r6 + r7) * M_C * (1 / 1000)
 
     return Sc
 
 
-def st_gen(params, rhobb):
+def st_gen(params, rhobb, Ts):
     """
     Tar mass generation rate St [kg/m³⋅s].
     """
     R = params['R']
-    Tgin = params['Tgin']
 
-    Ts = Tgin
     kbt = Abt * np.exp(-Ebt / (R * Ts))
     St = kbt * rhobb
 

@@ -64,5 +64,22 @@ def plot_rhoab_rhobb_rhocb(results):
     _style_axis(ax)
 
 
+def plot_ts(results):
+    """
+    Plot solid temperature.
+    """
+    Ts = results['Ts']
+    Tsin = results['Tsin']
+    z = results['z']
+
+    Tsz = np.concatenate((Ts, [Tsin]))
+
+    _, ax = plt.subplots(tight_layout=True)
+    ax.plot(z, Tsz)
+    ax.set_xlabel('Bed height, z [m]')
+    ax.set_ylabel('Temperature, Ts [K]')
+    _style_axis(ax)
+
+
 def show_plots():
     plt.show()

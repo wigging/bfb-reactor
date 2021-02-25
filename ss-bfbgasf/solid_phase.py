@@ -32,59 +32,15 @@ def alpha_fracs(params, rhos, rhosb):
     return afp, afs
 
 
-def ds_rhos_fuel(params, rhoba, rhobb, rhobc):
+def cp_solid(Ts, yc):
     """
-    Average diameter of the solid fuel particle d𝗌 [m] and solid fuel density ρ𝗌 [kg/m³].
+    Heat capacity of the solid fuel.
     """
-    db0 = params['db0']
-    lb = params['lb']
-    rhoa = params['rhoa']
-    rhoc = params['rhoc']
-    rhobio = params['rhobio']
-    wa = params['wa']
-    wc = params['wc']
+    cpb = (1.5 + (1e-3) * Ts) * 1e3
+    cpc = (0.44 + (2e-3) * Ts - (6.7e-7) * Ts**2) * 1e3
+    cps = yc * cpc + (1 - yc) * cpb
 
-    dbio = 3 * db0 * lb / (2 * lb + db0)
-    da = (wa * rhobio / rhoa)**(1 / 3) * dbio
-    dc = (wc * rhobio / rhoc)**(1 / 3) * dbio
-
-    rhob = (1 - wa) / (1 / rhobio - wa / rhoa)
-    db = ((1 - wa) * (rhobio / rhob))**(1 / 3) * dbio
-
-    ya = rhoba / (rhobb + rhobc + rhoba)
-    yc = rhobc / (rhobb + rhobc + rhoba)
-    yb = rhobb / (rhobb + rhobc + rhoba)
-
-    ds = (ya / da + yc / dc + yb / db)**(-1)
-
-    rhos = (ya / rhoa + yc / rhoc + yb / rhob)**(-1)
-
-    return ds, rhos
-
-
-def sfc_fuel(params):
-    """
-    Mean sphericity φ𝐬 [-] of the solid fuel particles.
-    """
-    db0 = params['db0']
-    lb = params['lb']
-
-    dbio = 3 * db0 * lb / (2 * lb + db0)
-    sfc = 2 * (3 / 2 * dbio**2 * lb)**(2 / 3) / (dbio * (dbio + 2 * lb))
-
-    return sfc
-
-
-def ms_res(params, Fb, rhogin, rhos):
-    """
-    here
-    """
-    g = params['g']
-
-    rhog = rhogin
-    Ms_res = g * (rhos - rhog) + Fb
-
-    return Ms_res
+    return cps
 
 
 def betaps_momentum(params, afs, ds, mfsin, rhos, rhosb, v):
@@ -109,20 +65,105 @@ def betaps_momentum(params, afs, ds, mfsin, rhos, rhosb, v):
     return Smps
 
 
-def v_coeffs(params, dz, rhos, Ms_res, Smgs, Smps, Sss, ug, v):
+def ds_rhos_fuel(params, ya, yb, yc):
     """
-    Coefficients a, b, c for solid fuel velocity matrix.
+    Average diameter of the solid fuel particle d𝗌 [m] and solid fuel density ρ𝗌 [kg/m³].
     """
-    N = params['N']
+    db0 = params['db0']
+    lb = params['lb']
+    rhoa = params['rhoa']
+    rhoc = params['rhoc']
+    rhobio = params['rhobio']
+    wa = params['wa']
+    wc = params['wc']
 
-    a = v + dz / rhos * (Smgs + Smps - Sss)
-    b = v
-    c = dz / rhos * (Ms_res - Smgs * ug)
+    dbio = 3 * db0 * lb / (2 * lb + db0)
+    da = (wa * rhobio / rhoa)**(1 / 3) * dbio
+    dc = (wc * rhobio / rhoc)**(1 / 3) * dbio
 
-    vin = v[N - 1]
-    c[N - 1] = c[N - 1] + b[N - 1] * vin
+    rhob = (1 - wa) / (1 / rhobio - wa / rhoa)
+    db = ((1 - wa) * (rhobio / rhob))**(1 / 3) * dbio
 
-    return a, b, c
+    ds = (ya / da + yc / dc + yb / db)**(-1)
+    rhos = (ya / rhoa + yc / rhoc + yb / rhob)**(-1)
+
+    return ds, rhos
+
+
+def hps_coeff(params, afp, afs, cps, ds, rhogin, rhos, ug, yc, v):
+    """
+    Particle-particle heat transfer coefficient h𝗉𝗌 [W/(m³⋅K)].
+    """
+    D = params['D']
+    Gp = params['Gp']
+    Gs = params['Gs']
+    e = params['e']
+    cpp = params['cpp']
+    dp = params['dp']
+    g = params['g']
+    kp = params['kp']
+    ks = params['ks']
+    mugin = params['mugin']
+    rhop = params['rhop']
+    vp = params['gamp']
+    vs = params['gams']
+
+    m = (np.pi / 6) * ((rhos * rhop * ds**3 * dp**3) / (rhos * ds**3 + rhop * dp**3))
+
+    s = (1 - vs**2) / Gs
+    t = (1 - vp**2) / Gp
+    E = (4 / 3) / (s + t)
+
+    mu = mugin
+    rhog = rhogin
+    vtp = g / 18 * dp**2 * (rhop - rhog) / mu
+    vts = g / 18 * ds**2 * (rhos - rhog) / mu
+
+    oms = (2 / 15) * ((ug - vts)**2 / (1 - e)) * (ds / D)**2
+    omp = (2 / 15) * ((ug - vtp)**2 / (1 - e)) * (dp / D)**2
+
+    a = afp * afs * (ds + dp)**2
+    b = (ds**3) * (dp**3) * ((rhos * cps * ks)**(-1 / 2) + (rhop * cpp * kp)**(-1 / 2))
+    d = (ds * dp) / (2 * (ds + dp))
+    hps = 4.88 * (a / b) * (m / E)**(3 / 5) * (d * v)**(7 / 10) * np.sqrt(8 * np.pi * (oms + omp))
+
+    return hps
+
+
+def ms_res(params, Fb, rhogin, rhos):
+    """
+    here
+    """
+    g = params['g']
+
+    rhog = rhogin
+    Ms_res = g * (rhos - rhog) + Fb
+
+    return Ms_res
+
+
+def sfc_fuel(params):
+    """
+    Mean sphericity φ𝐬 [-] of the solid fuel particles.
+    """
+    db0 = params['db0']
+    lb = params['lb']
+
+    dbio = 3 * db0 * lb / (2 * lb + db0)
+    sfc = 2 * (3 / 2 * dbio**2 * lb)**(2 / 3) / (dbio * (dbio + 2 * lb))
+
+    return sfc
+
+
+def y_fracs(rhoab, rhobb, rhocb):
+    """
+    Mass fractions for biomass, char, and ash.
+    """
+    ya = rhoab / (rhobb + rhocb + rhoab)
+    yb = rhobb / (rhobb + rhocb + rhoab)
+    yc = rhocb / (rhobb + rhocb + rhoab)
+
+    return ya, yb, yc
 
 
 def rhoab_coeffs(dz, Sa, v):
@@ -157,5 +198,46 @@ def rhocb_coeffs(dz, Sc, v):
     a = v
     b = v
     c = dz * Sc
+
+    return a, b, c
+
+
+def ts_coeffs(params, afs, cps, ds, dz, hgs, hps, rhosb, Sb, Ts, v):
+    """
+    Coefficients a, b, c for solid fuel temperature matrix.
+    """
+    N = params['N']
+    Tgin = params['Tgin']
+    Tsin = params['Tsin']
+    es = params['es']
+    sc = params['sc']
+
+    Hpyr = 64000
+
+    Tg = np.full(N, Tgin)
+    Tp = np.full(N, Tgin)
+
+    a = v + (dz / (rhosb * cps)) * ((6 / ds) * afs * hgs + hps)
+    b = v
+    c = (dz / (rhosb * cps)) * ((6 / ds) * afs * hgs * Tg + (6 / ds) * es * sc * (Tp**4 - Ts**4) + hps * Tp - 0 - Sb * Hpyr)
+
+    vin = v[N - 1]
+    c[N - 1] = c[N - 1] + vin * Tsin
+
+    return a, b, c
+
+
+def v_coeffs(params, dz, rhos, Ms_res, Smgs, Smps, Sss, ug, v):
+    """
+    Coefficients a, b, c for solid fuel velocity matrix.
+    """
+    N = params['N']
+
+    a = v + dz / rhos * (Smgs + Smps - Sss)
+    b = v
+    c = dz / rhos * (Ms_res - Smgs * ug)
+
+    vin = v[N - 1]
+    c[N - 1] = c[N - 1] + b[N - 1] * vin
 
     return a, b, c

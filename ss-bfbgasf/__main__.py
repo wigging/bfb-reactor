@@ -31,6 +31,7 @@ def main():
     plotter.plot_ug_v(results)
     plotter.plot_mfg(results)
     plotter.plot_rhoab_rhobb_rhocb(results)
+    plotter.plot_ts(results)
     plotter.show_plots()
 
 

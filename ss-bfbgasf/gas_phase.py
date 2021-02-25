@@ -34,52 +34,6 @@ def mfg_ug_inlet(params, rhogin):
     return mfgin, ugin
 
 
-def umf_bed(params, rhogin):
-    """
-    Minimum fluidization velocity U𝗆𝖿 [m/s] for the inert bed material.
-    """
-    dp = params['dp']
-    g = params['g']
-    mugin = params['mugin']
-    rhop = params['rhop']
-
-    Ar = dp**3 * rhogin * (rhop - rhogin) * g / mugin**2
-    Rem = -33.67 + (33.67**2 + 0.0408 * Ar)**0.5
-    umf = Rem * mugin / (rhogin * dp)
-
-    return umf
-
-
-def fb_prime(params, ug, ugin, umf, z):
-    """
-    Force Fʙ́ [N/m³] exerted on the fuel particles by the inert bed material
-    due to bubble flow.
-    """
-    D = params['D']
-    N = params['N']
-    ef0 = params['ef0']
-    emf = params['emf']
-    rhop = params['rhop']
-
-    ef = ef0
-    thetaw = 0.25
-
-    ugmean = np.mean(np.concatenate(([ugin], ef * ug)))
-    usf = max(ugin, ugmean)
-
-    db = 0.00853 * (1 + 27.2 * (usf - umf))**(1 / 3) * (1 + 6.84 * z)**1.21
-    Vb = 1.285 * (db / D)**1.52 * D
-
-    ub = 12.51 * (usf - umf)**0.362 * (db / D)**0.52 * D
-    ubu = np.concatenate((ub[2:N + 1], [ug[N - 1]]))
-    ubl = ub[1:N + 1]
-
-    dz = z[1] - z[0] / 2
-    Fb = -(1 - emf) * rhop * thetaw * Vb[1:] * (ubu - ubl) / dz
-
-    return Fb
-
-
 def betagp_momentum(params, afp, rhogin, ug):
     """
     Gas to inert bed material momentum transfer coefficient β𝗀𝗉 [N⋅s/m⁴].
@@ -123,6 +77,36 @@ def betags_momentum(params, ds, sfc, rhogin, ug, v):
     return Smgs
 
 
+def fb_prime(params, ug, ugin, umf, z):
+    """
+    Force Fʙ́ [N/m³] exerted on the fuel particles by the inert bed material
+    due to bubble flow.
+    """
+    D = params['D']
+    N = params['N']
+    ef0 = params['ef0']
+    emf = params['emf']
+    rhop = params['rhop']
+
+    ef = ef0
+    thetaw = 0.25
+
+    ugmean = np.mean(np.concatenate(([ugin], ef * ug)))
+    usf = max(ugin, ugmean)
+
+    db = 0.00853 * (1 + 27.2 * (usf - umf))**(1 / 3) * (1 + 6.84 * z)**1.21
+    Vb = 1.285 * (db / D)**1.52 * D
+
+    ub = 12.51 * (usf - umf)**0.362 * (db / D)**0.52 * D
+    ubu = np.concatenate((ub[2:N + 1], [ug[N - 1]]))
+    ubl = ub[1:N + 1]
+
+    dz = z[1] - z[0] / 2
+    Fb = -(1 - emf) * rhop * thetaw * Vb[1:] * (ubu - ubl) / dz
+
+    return Fb
+
+
 def fg_factor(params, rhogin, ug):
     """
     Wall friction factor f𝗀 [-].
@@ -143,6 +127,42 @@ def fg_factor(params, rhogin, ug):
             fg[i] = 0.079 / Reg[i]**0.25
 
     return fg
+
+
+def hgs_conv(params, ds, rhogin, ug, v):
+    """
+    Single particle convective heat transfer coefficient h𝗀𝗌 [W/(m²⋅K)] between the gas and
+    the solid fuel.
+    """
+    mugin = params['mugin']
+
+    rhog = rhogin
+    mug = mugin
+    Res = rhog * ds * abs(-ug - v) / mug
+
+    cpg = 1100
+    kg = 0.03
+    Pr = cpg * mug / kg
+
+    hgs = kg / ds * (2 + 0.6 * Res**0.5 * Pr**0.33)
+
+    return hgs
+
+
+def umf_bed(params, rhogin):
+    """
+    Minimum fluidization velocity U𝗆𝖿 [m/s] for the inert bed material.
+    """
+    dp = params['dp']
+    g = params['g']
+    mugin = params['mugin']
+    rhop = params['rhop']
+
+    Ar = dp**3 * rhogin * (rhop - rhogin) * g / mugin**2
+    Rem = -33.67 + (33.67**2 + 0.0408 * Ar)**0.5
+    umf = Rem * mugin / (rhogin * dp)
+
+    return umf
 
 
 def mfg_coeffs(params, afg, dz, fg, mfgin, rhogin, Sgs, Smgp, Smgs, ug, ugin, v):
