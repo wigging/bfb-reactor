@@ -43,6 +43,7 @@ def solver(params):
 
     # Initial values for gas and solid phase state variables
     Ts = np.full(N, Tsin)
+    Tp = np.full(N, Tsin)
     mfg = np.full(N, mfgin)
     rhoab = np.full(N, 1e-8)
     rhobb = np.full(N, mfsin / ugin)
@@ -68,6 +69,7 @@ def solver(params):
 
         # Gas phase
         ug = mfg / rhogin
+        hgp = gas.hgp_conv(params, rhogin, ug)
         hgs = gas.hgs_conv(params, ds, rhogin, ug, v)
         Fb = gas.fb_prime(params, ug, ugin, umf, z)
         Sgs = 0.0
@@ -77,19 +79,22 @@ def solver(params):
 
         # Solid phase
         hps = solid.hps_coeff(params, afp, afs, cps, ds, rhogin, rhos, ug, yc, v)
+        hwp = solid.hwp_conv(params, afp, rhogin)
+        Kr = solid.kr_coeff(params, afp)
         Ms_res = solid.ms_res(params, Fb, rhogin, rhos)
         Smps = solid.betaps_momentum(params, afs, ds, mfsin, rhos, rhosb, v)
         Sa = kinetics.sa_gen(params, rhocb, Ts)
         Sb = kinetics.sb_gen(params, rhobb, Ts)
         Sc = kinetics.sc_gen(params, rhobb, rhocb, Ts)
         Sss = Sb + Sc + Sa
+        Tp = solid.tp_inert(params, afp, afs, ds, hgp, hps, hwp, Kr, Tp, Ts)
 
         # Coefficients and A matrices
         aa, ba, ca = solid.rhoab_coeffs(dz, Sa, v)
         ab, bb, cb = solid.rhobb_coeffs(params, dz, rhobbin, Sb, v)
         ac, bc, cc = solid.rhocb_coeffs(dz, Sc, v)
         av, bv, cv = solid.v_coeffs(params, dz, rhos, Ms_res, Smgs, Smps, Sss, ug, v)
-        ats, bts, cts = solid.ts_coeffs(params, afs, cps, ds, dz, hgs, hps, rhosb, Sb, Ts, v)
+        ats, bts, cts = solid.ts_coeffs(params, afs, cps, ds, dz, hgs, hps, rhosb, Sb, Tp, Ts, v)
         # am, bm, cm, dm = gas.mfg_coeffs(params, afg, dz, fg, mfgin, rhogin, Sgs, Smgp, Smgs, ug, ugin, v)
         am, bm, cm, dm = gas.mfg_coeffs2(params, afs, dz, fg, mfgin, rhogin, Sgs, Smgp, Smgs, ug, ugin, v)
 
@@ -130,6 +135,7 @@ def solver(params):
         'ug': ug,
         'ugin': ugin,
         'v': v,
+        'Tp': Tp,
         'Ts': Ts,
         'Tsin': Tsin
     }

@@ -10,6 +10,7 @@
     // Reactor dimensions
     "D": 0.1,
     "L": 0.3,
+    "ew": 0.13,
 
     // Bed material particle
     "ef0": 0.454,

@@ -130,6 +130,57 @@ def hps_coeff(params, afp, afs, cps, ds, rhogin, rhos, ug, yc, v):
     return hps
 
 
+def hwp_conv(params, afp, rhogin):
+    """
+    Convective heat transfer coefficient h𝗐𝗉 [W/(m²⋅K)] between bulk inert
+    particles and the reactor walls.
+    """
+    cpp = params['cpp']
+    dp = params['dp']
+    ef0 = params['ef0']
+    g = params['g']
+    kp = params['kp']
+    rhop = params['rhop']
+
+    ef = ef0
+    rhog = rhogin
+
+    cpg = 1100
+    kg = 0.03
+
+    S = 0.0282 * afp**(-0.59)
+    ec = 1 - 1.23 * (1 - ef)**0.54
+
+    x = (1 - ec) * (1 - (kg / kp))
+    y = kp / kg + 0.28 * ec**(0.63 * (kg / kp)**0.18)
+    kc = kg * (1 + (x / y))
+
+    Cc = (1 - ec) * rhop * cpp + ec * rhog * cpg
+    Lc = 0.0178 * rhop**0.596
+    uc = 0.75 * np.sqrt((rhop / rhog) * g * dp)
+
+    tc = Lc / uc
+
+    a = ((np.pi * tc) / (4 * kc * Cc))**0.5
+    b = (S * dp) / kg
+    hwp = 1 / (a + b)
+
+    return hwp
+
+
+def kr_coeff(params, afp):
+    """
+    Effective radiation coefficient K𝗋 [1/m].
+    """
+    D = params['D']
+    ep = params['ep']
+    ew = params['ew']
+
+    Kr = (4 / D) * ((1 - ep) / (ep * afp**2) + 1 / ew)**(-1)
+
+    return Kr
+
+
 def ms_res(params, Fb, rhogin, rhos):
     """
     here
@@ -153,6 +204,31 @@ def sfc_fuel(params):
     sfc = 2 * (3 / 2 * dbio**2 * lb)**(2 / 3) / (dbio * (dbio + 2 * lb))
 
     return sfc
+
+
+def tp_inert(params, afp, afs, ds, hgp, hps, hwp, Kr, Tp, Ts):
+    """
+    Solid inert bed temperature Tp [K].
+    """
+    D = params['D']
+    N = params['N']
+    Tgin = params['Tgin']
+    dp = params['dp']
+    es = params['es']
+    phi = params['phi']
+    sc = params['sc']
+
+    Tg = np.full(N, Tgin)
+    Tw = np.full(N, Tgin)
+
+    Xp = (6 / (phi * dp)) * afp * hgp + hps + (4 / D) * afp * hwp
+
+    Sp = -(6 / ds) * afs * es * sc * (Tp**4 - Ts**4) + Kr * sc * (Tw**4 - Tp**4)
+    Yp = (6 / (phi * dp)) * afp * hgp * Tg + hps * Ts + (4 / D) * afp * hwp * Tw + Sp
+
+    Tp = Yp / Xp
+
+    return Tp
 
 
 def y_fracs(rhoab, rhobb, rhocb):
@@ -202,7 +278,7 @@ def rhocb_coeffs(dz, Sc, v):
     return a, b, c
 
 
-def ts_coeffs(params, afs, cps, ds, dz, hgs, hps, rhosb, Sb, Ts, v):
+def ts_coeffs(params, afs, cps, ds, dz, hgs, hps, rhosb, Sb, Tp, Ts, v):
     """
     Coefficients a, b, c for solid fuel temperature matrix.
     """
@@ -215,7 +291,6 @@ def ts_coeffs(params, afs, cps, ds, dz, hgs, hps, rhosb, Sb, Ts, v):
     Hpyr = 64000
 
     Tg = np.full(N, Tgin)
-    Tp = np.full(N, Tgin)
 
     a = v + (dz / (rhosb * cps)) * ((6 / ds) * afs * hgs + hps)
     b = v

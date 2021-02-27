@@ -129,6 +129,33 @@ def fg_factor(params, rhogin, ug):
     return fg
 
 
+def hgp_conv(params, rhogin, ug):
+    """
+    Convective heat transfer coefficient h𝗀𝗉 [W/(m²⋅K)] between gas and inert
+    bed material.
+    """
+    dp = params['dp']
+    ef0 = params['ef0']
+    mugin = params['mugin']
+
+    ef = ef0
+    mug = mugin
+    rhog = rhogin
+
+    cpg = 1100
+    kg = 0.03
+    Pr = cpg * mug / kg
+
+    Rep = (rhog * dp) * abs(ug) / mug
+
+    a = 7 - 10 * ef + 5 * ef**2
+    b = 1 + 0.7 * Rep**0.2 * Pr**0.33
+    c = (1.33 - 2.4 * ef + 1.2 * ef**2) * Rep**0.7 * Pr**0.33
+    hgp = (kg / dp) * (a * b + c)
+
+    return hgp
+
+
 def hgs_conv(params, ds, rhogin, ug, v):
     """
     Single particle convective heat transfer coefficient h𝗀𝗌 [W/(m²⋅K)] between the gas and
