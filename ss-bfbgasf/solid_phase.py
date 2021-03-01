@@ -267,6 +267,20 @@ def rhobb_coeffs(params, dz, rhobbin, Sb, v):
     return a, b, c
 
 
+def rhobb_coeffs2(params, dz, kb, mfsin, v):
+    """
+    h
+    """
+    N = params['N']
+
+    a = v + (dz * kb)
+    b = v
+    c = np.zeros(N)
+    c[N - 1] = c[N - 1] + mfsin
+
+    return a, b, c
+
+
 def rhocb_coeffs(dz, Sc, v):
     """
     Coefficients a, b, c for the char mass concentration matrix.

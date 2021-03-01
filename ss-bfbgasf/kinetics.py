@@ -21,6 +21,20 @@ Abt = 4.13e6    # biomass -> tar
 Ebt = 112.7e3
 
 
+def kb_rate(params, Ts):
+    """
+    Total biomass pyrolysis rate constant k𝖻 [1/s].
+    """
+    R = params['R']
+
+    kbv = Abv * np.exp(-Ebv / (R * Ts))
+    kbc = Abc * np.exp(-Ebc / (R * Ts))
+    kbt = Abt * np.exp(-Ebt / (R * Ts))
+    kb = (kbv + kbc + kbt)
+
+    return kb
+
+
 def sa_gen(params, rhocb, Ts):
     """
     Ash mass generation rate Sa [kg/m³⋅s].

@@ -80,6 +80,7 @@ def solver(params):
         # Solid phase
         hps = solid.hps_coeff(params, afp, afs, cps, ds, rhogin, rhos, ug, yc, v)
         hwp = solid.hwp_conv(params, afp, rhogin)
+        kb = kinetics.kb_rate(params, Ts)
         Kr = solid.kr_coeff(params, afp)
         Ms_res = solid.ms_res(params, Fb, rhogin, rhos)
         Smps = solid.betaps_momentum(params, afs, ds, mfsin, rhos, rhosb, v)
@@ -91,7 +92,8 @@ def solver(params):
 
         # Coefficients and A matrices
         aa, ba, ca = solid.rhoab_coeffs(dz, Sa, v)
-        ab, bb, cb = solid.rhobb_coeffs(params, dz, rhobbin, Sb, v)
+        # ab, bb, cb = solid.rhobb_coeffs(params, dz, rhobbin, Sb, v)
+        ab, bb, cb = solid.rhobb_coeffs2(params, dz, kb, mfsin, v)
         ac, bc, cc = solid.rhocb_coeffs(dz, Sc, v)
         av, bv, cv = solid.v_coeffs(params, dz, rhos, Ms_res, Smgs, Smps, Sss, ug, v)
         ats, bts, cts = solid.ts_coeffs(params, afs, cps, ds, dz, hgs, hps, rhosb, Sb, Tp, Ts, v)
@@ -112,8 +114,6 @@ def solver(params):
         v = np.linalg.solve(Av, cv)
         Ts = np.linalg.solve(Ats, cts)
         mfg = np.linalg.solve(Am, dm)
-
-        rhobb = np.maximum(rhobb, 0)
 
         # Update count and guess
         count = count + 1
