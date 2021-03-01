@@ -330,3 +330,19 @@ def v_coeffs(params, dz, rhos, Ms_res, Smgs, Smps, Sss, ug, v):
     c[N - 1] = c[N - 1] + b[N - 1] * vin
 
     return a, b, c
+
+
+def v_coeffs2(params, dz, rhos, Ms_res, Smgs, Smps, Sss, ug, v):
+    """
+    h
+    """
+    N = params['N']
+
+    a = rhos * v + 2 * dz * (Smgs + Smps - Sss)
+    b = rhos * v
+    c = 2 * dz * (Ms_res - Smgs * ug)
+
+    vin = v[N - 1]
+    c[N - 1] = c[N - 1] + b[N - 1] * vin
+
+    return a, b, c
