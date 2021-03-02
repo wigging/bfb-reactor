@@ -192,7 +192,7 @@ def umf_bed(params, rhogin):
     return umf
 
 
-def mfg_coeffs(params, afg, dz, fg, mfgin, rhogin, Sgs, Smgp, Smgs, ug, ugin, v):
+def mfg_coeffs(params, dz, fg, mfgin, rhogin, Sgs, Smgp, Smgs, Tg, ug, ugin, v):
     """
     Coefficients a, b, c, d for gas mass flux matrix.
     """
@@ -200,7 +200,6 @@ def mfg_coeffs(params, afg, dz, fg, mfgin, rhogin, Sgs, Smgp, Smgs, ug, ugin, v)
     N = params['N']
     R = params['R']
     Mgin = params['Mgin']
-    Tgin = params['Tgin']
     ef0 = params['ef0']
     g = params['g']
     rhop = params['rhop']
@@ -208,11 +207,11 @@ def mfg_coeffs(params, afg, dz, fg, mfgin, rhogin, Sgs, Smgp, Smgs, ug, ugin, v)
     rhog = rhogin
     rhogb = rhogin
 
-    Tg = np.full(N, Tgin)
     Mg = np.full(N, Mgin)
     P = R * rhog * Tg / Mg * 1e3
 
     dp = np.zeros(len(P))
+    afg = ef0
     dp[:-1] = afg / dz * np.diff(P)
 
     epb = 1 - ef0
@@ -233,7 +232,7 @@ def mfg_coeffs(params, afg, dz, fg, mfgin, rhogin, Sgs, Smgp, Smgs, ug, ugin, v)
     return a, b, c, d
 
 
-def mfg_coeffs2(params, afs, dz, fg, mfgin, rhogin, Sgs, Smgp, Smgs, ug, ugin, v):
+def mfg_coeffs2(params, afs, dz, fg, mfgin, rhogin, Sgs, Smgp, Smgs, Tg, ug, ugin, v):
     """
     Coefficients a, b, c, d for gas mass flux matrix. (Version 2)
     """
@@ -241,7 +240,6 @@ def mfg_coeffs2(params, afs, dz, fg, mfgin, rhogin, Sgs, Smgp, Smgs, ug, ugin, v
     N = params['N']
     R = params['R']
     Mgin = params['Mgin']
-    Tgin = params['Tgin']
     ef0 = params['ef0']
     g = params['g']
     rhop = params['rhop']
@@ -250,25 +248,24 @@ def mfg_coeffs2(params, afs, dz, fg, mfgin, rhogin, Sgs, Smgp, Smgs, ug, ugin, v
     rhog = rhogin
     rhogb = rhogin
 
-    Tg = np.full(N, Tgin)
     Mg = np.full(N, Mgin)
-    P = R * rhog * Tg / Mg * 1e3
+    P = ((R * rhog * Tg) / Mg) * 1e3
 
     dp = np.zeros(len(P))
     dp[:-1] = np.diff(P)
 
     a = np.concatenate(([ugin], ug[0:N - 1]))
 
-    b1 = ug[0] - ugin - (2 * dz / rhogb) * (afs[0] * Smgs[0] - Smgp[0] + Sgs)
-    binner = ug[1:N] - ug[0:N - 1] - (2 * dz / rhogb) * (afs[1:N] * Smgs[1:N] - Smgp[1:N] + Sgs)
+    b1 = ug[0] - ugin - ((2 * dz) / rhogb) * (afs[0] * Smgs[0] - Smgp[0] + Sgs)
+    binner = ug[1:N] - ug[0:N - 1] - ((2 * dz) / rhogb) * (afs[1:N] * Smgs[1:N] - Smgp[1:N] + Sgs)
     b = np.concatenate(([b1], binner))
 
     c = ug
     b[N - 1] = b[N - 1] + c[N - 1]
 
-    d1 = g * (ef * (1 - ef) * rhop - rhogb)
-    d2 = 2 * fg * rhogb / D * ug * abs(ug)
-    d = 2 * dz * (d1 + afs * Smgs * v - d2 - ef * dp / dz)
+    x = g * (ef * (1 - ef) * rhop - rhogb)
+    y = ((2 * fg * rhogb) / D) * ug * abs(ug)
+    d = 2 * dz * (x + (afs * Smgs * v) - y - ef * (dp / dz))
     d[0] = d[0] + ugin * mfgin
 
     return a, b, c, d

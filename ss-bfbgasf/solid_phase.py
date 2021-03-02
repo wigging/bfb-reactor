@@ -194,21 +194,17 @@ def sfc_fuel(params):
     return sfc
 
 
-def tp_inert(params, afp, afs, ds, hgp, hps, hwp, Kr, Tp, Ts):
+def tp_inert(params, afp, afs, ds, hgp, hps, hwp, Kr, Tg, Tp, Ts):
     """
     Solid inert bed temperature Tp [K].
     """
     D = params['D']
-    N = params['N']
-    Tgin = params['Tgin']
     dp = params['dp']
     es = params['es']
     phi = params['phi']
     sc = params['sc']
 
-    Tg = np.full(N, Tgin)
-    Tw = np.full(N, Tgin)
-
+    Tw = Tg
     Xp = (6 / (phi * dp)) * afp * hgp + hps + (4 / D) * afp * hwp
 
     Sp = -(6 / ds) * afs * es * sc * (Tp**4 - Ts**4) + Kr * sc * (Tw**4 - Tp**4)
@@ -280,19 +276,16 @@ def rhocb_coeffs(dz, Sc, v):
     return a, b, c
 
 
-def ts_coeffs(params, afs, cps, ds, dz, hgs, hps, rhosb, Sb, Tp, Ts, v):
+def ts_coeffs(params, afs, cps, ds, dz, hgs, hps, rhosb, Sb, Tg, Tp, Ts, v):
     """
     Coefficients a, b, c for solid fuel temperature matrix.
     """
     N = params['N']
-    Tgin = params['Tgin']
     Tsin = params['Tsin']
     es = params['es']
     sc = params['sc']
 
     Hpyr = 64000
-
-    Tg = np.full(N, Tgin)
 
     a = v + (dz / (rhosb * cps)) * ((6 / ds) * afs * hgs + hps)
     b = v

@@ -26,14 +26,10 @@ def solver(params):
     N = params['N']
     z, dz = _grid(params)
 
-    # Inlet conditions
-    Tsin = params['Tsin']
+    # Inlet conditions calculated for gas and solid phase
     rhogin = gas.rhog_inlet(params)
     mfgin, ugin = gas.mfg_ug_inlet(params, rhogin)
     mfsin, rhobbin = solid.mfs_rhobb_inlet(params, ugin)
-
-    # Gas phase
-    # afg = params['ef0']
 
     # Fluidization
     umf = gas.umf_bed(params, rhogin)
@@ -42,8 +38,9 @@ def solver(params):
     sfc = solid.sfc_fuel(params)
 
     # Initial values for gas and solid phase state variables
-    Ts = np.full(N, Tsin)
-    Tp = np.full(N, Tsin)
+    Tg = np.full(N, params['Tgin'])
+    Tp = np.full(N, params['Tsin'])
+    Ts = np.full(N, params['Tsin'])
     mfg = np.full(N, mfgin)
     rhoab = np.full(N, 1e-8)
     rhobb = np.full(N, mfsin / ugin)
@@ -87,7 +84,7 @@ def solver(params):
         Sb = kinetics.sb_gen(params, rhobb, Ts)
         Sc = kinetics.sc_gen(params, rhobb, rhocb, Ts)
         Sss = Sb + Sc + Sa
-        Tp = solid.tp_inert(params, afp, afs, ds, hgp, hps, hwp, Kr, Tp, Ts)
+        Tp = solid.tp_inert(params, afp, afs, ds, hgp, hps, hwp, Kr, Tg, Tp, Ts)
 
         # Coefficients and A matrices
         aa, ba, ca = solid.rhoab_coeffs(dz, Sa, v)
@@ -96,9 +93,9 @@ def solver(params):
         ac, bc, cc = solid.rhocb_coeffs(dz, Sc, v)
         # av, bv, cv = solid.v_coeffs(params, dz, Fb, rhogin, rhos, Smgs, Smps, Sss, ug, v)
         av, bv, cv = solid.v_coeffs2(params, dz, Fb, rhogin, rhos, Smgs, Smps, Sss, ug, v)
-        ats, bts, cts = solid.ts_coeffs(params, afs, cps, ds, dz, hgs, hps, rhosb, Sb, Tp, Ts, v)
-        # am, bm, cm, dm = gas.mfg_coeffs(params, afg, dz, fg, mfgin, rhogin, Sgs, Smgp, Smgs, ug, ugin, v)
-        am, bm, cm, dm = gas.mfg_coeffs2(params, afs, dz, fg, mfgin, rhogin, Sgs, Smgp, Smgs, ug, ugin, v)
+        ats, bts, cts = solid.ts_coeffs(params, afs, cps, ds, dz, hgs, hps, rhosb, Sb, Tg, Tp, Ts, v)
+        # am, bm, cm, dm = gas.mfg_coeffs(params, dz, fg, mfgin, rhogin, Sgs, Smgp, Smgs, Tg, ug, ugin, v)
+        am, bm, cm, dm = gas.mfg_coeffs2(params, afs, dz, fg, mfgin, rhogin, Sgs, Smgp, Smgs, Tg, ug, ugin, v)
 
         Aa = diags([aa, -ba[1:]], offsets=[0, 1]).toarray()
         Ab = diags([ab, -bb[1:]], offsets=[0, 1]).toarray()
@@ -138,7 +135,7 @@ def solver(params):
         'v': v,
         'Tp': Tp,
         'Ts': Ts,
-        'Tsin': Tsin
+        'Tsin': params['Tsin']
     }
 
     return results
