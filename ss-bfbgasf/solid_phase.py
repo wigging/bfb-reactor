@@ -181,18 +181,6 @@ def kr_coeff(params, afp):
     return Kr
 
 
-def ms_res(params, Fb, rhogin, rhos):
-    """
-    here
-    """
-    g = params['g']
-
-    rhog = rhogin
-    Ms_res = g * (rhos - rhog) + Fb
-
-    return Ms_res
-
-
 def sfc_fuel(params):
     """
     Mean sphericity φ𝐬 [-] of the solid fuel particles.
@@ -332,11 +320,15 @@ def v_coeffs(params, dz, rhos, Ms_res, Smgs, Smps, Sss, ug, v):
     return a, b, c
 
 
-def v_coeffs2(params, dz, rhos, Ms_res, Smgs, Smps, Sss, ug, v):
+def v_coeffs2(params, dz, Fb, rhogin, rhos, Smgs, Smps, Sss, ug, v):
     """
-    h
+    Coefficients a, b, c for solid fuel velocity matrix.
     """
     N = params['N']
+    g = params['g']
+
+    rhog = rhogin
+    Ms_res = g * (rhos - rhog) + Fb
 
     a = rhos * v + 2 * dz * (Smgs + Smps - Sss)
     b = rhos * v
