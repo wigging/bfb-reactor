@@ -304,11 +304,15 @@ def ts_coeffs(params, afs, cps, ds, dz, hgs, hps, rhosb, Sb, Tp, Ts, v):
     return a, b, c
 
 
-def v_coeffs(params, dz, rhos, Ms_res, Smgs, Smps, Sss, ug, v):
+def v_coeffs(params, dz, Fb, rhogin, rhos, Smgs, Smps, Sss, ug, v):
     """
     Coefficients a, b, c for solid fuel velocity matrix.
     """
     N = params['N']
+    g = params['g']
+
+    rhog = rhogin
+    Ms_res = g * (rhos - rhog) + Fb
 
     a = v + dz / rhos * (Smgs + Smps - Sss)
     b = v

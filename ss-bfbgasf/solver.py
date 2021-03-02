@@ -94,7 +94,7 @@ def solver(params):
         # ab, bb, cb = solid.rhobb_coeffs(params, dz, rhobbin, Sb, v)
         ab, bb, cb = solid.rhobb_coeffs2(params, dz, kb, mfsin, v)
         ac, bc, cc = solid.rhocb_coeffs(dz, Sc, v)
-        # av, bv, cv = solid.v_coeffs(params, dz, rhos, Ms_res, Smgs, Smps, Sss, ug, v)
+        # av, bv, cv = solid.v_coeffs(params, dz, Fb, rhogin, rhos, Smgs, Smps, Sss, ug, v)
         av, bv, cv = solid.v_coeffs2(params, dz, Fb, rhogin, rhos, Smgs, Smps, Sss, ug, v)
         ats, bts, cts = solid.ts_coeffs(params, afs, cps, ds, dz, hgs, hps, rhosb, Sb, Tp, Ts, v)
         # am, bm, cm, dm = gas.mfg_coeffs(params, afg, dz, fg, mfgin, rhogin, Sgs, Smgp, Smgs, ug, ugin, v)
