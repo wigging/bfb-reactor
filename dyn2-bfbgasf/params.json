@@ -1,0 +1,58 @@
+{
+    // Constants
+    // R [J/mol⋅K] universal gas constant
+    // g [m/s²] acceleration due to gravity
+    "R": 8.314,
+    "g": 9.81,
+    "sc": 5.67e-8,
+    "Pa": 1.013e5,
+
+    // Reactor dimensions
+    "D": 0.1,
+    "L": 0.3,
+    "ew": 0.13,
+
+    // Bed material particle
+    "ef0": 0.454,
+    "rhop": 2650,
+    "cpp": 830,
+    "dp": 6.15e-4,
+    "phi": 0.72,
+    "ep": 0.76,
+    "kp": 0.260,
+    "Gp": 50.0,
+    "gamp": 0.25,
+    "emf": 0.454,
+
+    // Fuel particle
+    "db0": 6.0e-3,
+    "lb": 1.33e-2,
+    "n1": 1.4,
+    "wc": 0.144,
+    "wa": 0.0041,
+    "wH2O": 0.062,
+    "rhobio": 423,
+    "rhoc": 150,
+    "rhoa": 950,
+    "ks": 0.25,
+    "Gs": 36.5,
+    "gams": 0.425,
+    "es": 0.95,
+
+    // Particle-particle contacts
+    "e": 0.9,
+    "cf": 0.62,
+
+    // Gas properties
+    "Mgin": 20,
+    "mugin": 2e-5,
+
+    // Input variables
+    "mgin": 1.0e-3,
+    "Tgin": 1100,
+    "Tsin": 300,
+    "msin": 5.0e-4,
+
+    // Grid points
+    "N": 1000
+}
