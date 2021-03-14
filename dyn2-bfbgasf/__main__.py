@@ -1,5 +1,7 @@
 import json
 
+from solver import solver
+
 
 def _get_params(json_file):
     """
@@ -21,8 +23,8 @@ def main():
     """
     Run the 1D bubbling fluidized bed (BFB) gasification model.
     """
-    params = _get_params('ss-bfbgasf/params.json')
-    print('D =', params['D'])
+    params = _get_params('dyn2-bfbgasf/params.json')
+    results = solver(params)
 
 
 if __name__ == '__main__':
