@@ -30,6 +30,7 @@
     "Tgin": 1073,
 
     // Solid phase
+    // Tsin solid fuel inlet temperature [K]
     // db0 diameter of raw biomass particle (assumed cylindrical) [m]
     // dp diameter of the inert bed particle [m]
     // ef0 initial void fraction of the inert bed particles [-]
@@ -42,6 +43,7 @@
     // rhop density of inert bed particle [kg/m³]
     // wa weight fraction of ash in biomass particle [-]
     // wc weight fraction of char in biomass particle [-]
+    "Tsin": 300,
     "db0": 6.0e-3,
     "dp": 6.15e-4,
     "ef0": 0.454,

@@ -31,5 +31,28 @@ def plot_mfg(results):
     _style_axis(ax2)
 
 
+def plot_ts(results):
+    x = results['x']
+    t = results['t']
+    Ts = results['Ts']
+
+    # Ts along height of the reactor at final time
+    Tsx = np.concatenate(([300], Ts[:, -1], [Ts[-1, -1]]))
+
+    _, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, sharey=True, tight_layout=True)
+
+    ax1.plot(t, Ts[0], label='btm')
+    ax1.plot(t, Ts[50], label='mid')
+    ax1.plot(t, Ts[-1], label='top')
+    ax1.set_xlabel('t [s]')
+    ax1.set_ylabel('Ts [K]')
+    ax1.legend()
+    _style_axis(ax1)
+
+    ax2.plot(x, Tsx)
+    ax2.set_xlabel('x [m]')
+    _style_axis(ax2)
+
+
 def show_plots():
     plt.show()

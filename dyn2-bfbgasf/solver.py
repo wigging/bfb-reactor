@@ -9,24 +9,19 @@ def solver(params):
     """
     Solver function.
     """
-    N1 = params['N1']
-    N2 = params['N2']
-    N3 = params['N3']
-
-    # total grid points (N) and grid points to bed top (Np)
-    N = N1 + N2 + N3
-    Np = N1 + N2
+    N = params['N']
 
     # one-dimensional grid steps and points
     dx, x = grid(params)
 
     # initial conditions
+    Ts0 = np.full(N, params['Tsin'])
     mfg0 = np.full(N, 0.2)
 
     # solve system of ODEs using SciPy ODE solver
-    y0 = mfg0
+    y0 = np.concatenate((Ts0, mfg0))
     tspan = (0, params['tf'])
-    args = (params, dx, N, Np)
+    args = (params, dx)
     sol = solve_ivp(dydt, tspan, y0, method='Radau', rtol=1e-6, args=args)
 
     # print solver information
@@ -41,7 +36,8 @@ def solver(params):
     results = {
         'x': x,
         't': sol.t,
-        'mfg': sol.y
+        'Ts': sol.y[0:N],
+        'mfg': sol.y[N:2 * N]
     }
 
     return results

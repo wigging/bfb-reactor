@@ -17,6 +17,10 @@ def get_params(json_file):
 
     json_dict = json.loads(json_str)
 
+    # total grid points (N) and grid points to bed top (Np)
+    N = json_dict['N1'] + json_dict['N2'] + json_dict['N3']
+    Np = json_dict['N1'] + json_dict['N2']
+
     # bed cross-sectional area [m²]
     Db = json_dict['Db']
     Ab = (np.pi / 4) * (Db**2)
@@ -39,7 +43,9 @@ def get_params(json_file):
     rhog_in = Pin * Mgin / (R * Tgin) * 1e-3
     rhob_gin = rhog_in
 
-    # add inlet parameters to JSON dictionary
+    # add calculated parameters to JSON dictionary
+    json_dict['N'] = N
+    json_dict['Np'] = Np
     json_dict['mfgin'] = mfgin
     json_dict['rhob_gin'] = rhob_gin
 

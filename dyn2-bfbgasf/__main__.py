@@ -10,6 +10,7 @@ def main():
     params = get_params('dyn2-bfbgasf/params.json')
     results = solver(params)
 
+    plotter.plot_ts(results)
     plotter.plot_mfg(results)
     plotter.show_plots()
 

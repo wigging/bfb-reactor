@@ -1,18 +1,24 @@
 import numpy as np
 
 
+# >>>
+# FIXME: these variables should be calculated, assumes that N = 100
+Mg = np.full(100, 18)
+Sg = np.full(100, 5.8362e-24)
+Tg = np.full(100, 1100)
+ef = 0.48572
+mu = np.full(100, 4.1547e-05)
+rhob_g = np.full(100, 0.15)
+rhob_s = np.full(100, 1e-12)
+rhos = np.full(100, 423)
+v = np.full(100, 0.34607)
+# <<<
+
+
 def calc_dP(dx, N, Np):
     """
     Calculate pressure drop along the reactor.
     """
-
-    # >>> FIXME: these should be calculating
-    ef = 0.48572
-    rhob_g = np.full(N, 0.15)
-    Mg = np.full(N, 18)
-    Tg = np.full(N, 1100)
-    # <<<
-
     R = 8.314
 
     # volume fraction of gas in bed and freeboard [-]
@@ -36,10 +42,6 @@ def calc_rhobgav(N):
     Calculate the average gas mass concentration.
     """
 
-    # >>> FIXME: these should be calculated
-    rhob_g = np.full(N, 0.15)
-    # <<<
-
     # average gas mass concentration [kg/m³]
     rhob_gav = np.zeros(N)
     rhob_gav[0:N - 1] = 0.5 * (rhob_g[0:N - 1] + rhob_g[1:N])
@@ -52,17 +54,6 @@ def mfg_terms(params, ds, dx, mfg, N, Np, rhob_gav, sfc):
     """
     Source terms for calculating gas mass flux.
     """
-
-    # >>> FIXME: these should be calculated
-    ef = 0.48572
-    mu = np.full(N, 4.1547e-05)
-    rhob_g = np.full(N, 0.15)
-    rhob_s = np.full(N, 1e-12)
-    rhos = np.full(N, 423)
-    v = np.full(N, 0.34607)
-    Sg = np.full(N, 5.8362e-24)
-    # <<<
-
     Db = params['Db']
     Lp = params['Lp']
     Ls = params['Ls']
@@ -142,7 +133,7 @@ def mfg_rate(params, Cmf, dx, DP, mfg, rhob_gav, N, Np, Smgg, SmgV):
     # gas velocity along the reactor [m/s]
     ug = mfg / rhob_gav
 
-    # initialize vector representing height along reactor
+    # ∂ṁfg/∂t along height of the reactor
     dmfgdt = np.zeros(N)
 
     # at gas inlet, bottom of reactor
