@@ -11,6 +11,7 @@ def main():
     results = solver(params)
 
     plotter.plot_ts(results)
+    plotter.plot_tg(results)
     plotter.plot_mfg(results)
     plotter.show_plots()
 

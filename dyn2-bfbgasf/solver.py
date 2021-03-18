@@ -15,11 +15,12 @@ def solver(params):
     dx, x = grid(params)
 
     # initial conditions
-    Ts0 = np.full(N, params['Tsin'])
+    Ts0 = np.full(N, 300)
+    Tg0 = np.full(N, 1100)
     mfg0 = np.full(N, 0.2)
 
     # solve system of ODEs using SciPy ODE solver
-    y0 = np.concatenate((Ts0, mfg0))
+    y0 = np.concatenate((Ts0, Tg0, mfg0))
     tspan = (0, params['tf'])
     args = (params, dx)
     sol = solve_ivp(dydt, tspan, y0, method='Radau', rtol=1e-6, args=args)
@@ -37,7 +38,8 @@ def solver(params):
         'x': x,
         't': sol.t,
         'Ts': sol.y[0:N],
-        'mfg': sol.y[N:2 * N]
+        'Tg': sol.y[N:2 * N],
+        'mfg': sol.y[2 * N:3 * N]
     }
 
     return results

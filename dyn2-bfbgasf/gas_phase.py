@@ -4,10 +4,16 @@ import numpy as np
 # >>>
 # FIXME: these variables should be calculated, assumes that N = 100
 Mg = np.full(100, 18)
+Pr = np.full(100, 0.87446)
 Sg = np.full(100, 5.8362e-24)
-Tg = np.full(100, 1100)
+Tp = np.zeros(100)
+Tp[:75] = 1100
+Tw = np.full(100, 1100)
+cpg = np.full(100, 2363.4)
 ef = 0.48572
+kg = np.full(100, 0.11229)
 mu = np.full(100, 4.1547e-05)
+qgs = np.zeros(100)
 rhob_g = np.full(100, 0.15)
 rhob_s = np.full(100, 1e-12)
 rhos = np.full(100, 423)
@@ -15,10 +21,12 @@ v = np.full(100, 0.34607)
 # <<<
 
 
-def calc_dP(dx, N, Np):
+def calc_dP(params, dx, Tg):
     """
     Calculate pressure drop along the reactor.
     """
+    N = params['N']
+    Np = params['Np']
     R = 8.314
 
     # volume fraction of gas in bed and freeboard [-]
@@ -50,13 +58,15 @@ def calc_rhobgav(N):
     return rhob_gav
 
 
-def mfg_terms(params, ds, dx, mfg, N, Np, rhob_gav, sfc):
+def mfg_terms(params, ds, dx, mfg, rhob_gav, sfc):
     """
     Source terms for calculating gas mass flux.
     """
     Db = params['Db']
     Lp = params['Lp']
     Ls = params['Ls']
+    N = params['N']
+    Np = params['Np']
     N1 = params['N1']
     dp = params['dp']
     ef0 = params['ef0']
@@ -123,10 +133,12 @@ def mfg_terms(params, ds, dx, mfg, N, Np, rhob_gav, sfc):
     return Cmf, Smgg, SmgV
 
 
-def mfg_rate(params, Cmf, dx, DP, mfg, rhob_gav, N, Np, Smgg, SmgV):
+def mfg_rate(params, Cmf, dx, DP, mfg, rhob_gav, Smgg, SmgV):
     """
     Gas mass flux rate ∂ṁfg/∂t.
     """
+    N = params['N']
+    Np = params['Np']
     mfgin = params['mfgin']
     rhob_gin = params['rhob_gin']
 
@@ -154,3 +166,73 @@ def mfg_rate(params, Cmf, dx, DP, mfg, rhob_gav, N, Np, Smgg, SmgV):
     dmfgdt[N - 1] = SmgfN
 
     return dmfgdt
+
+
+def tg_rate(params, ds, dx, mfg, rhob_gav, Tg, Ts):
+    """
+    Gas temperature rate ∂T𝗀/∂t.
+    """
+    Db = params['Db']
+    Dwi = params['Dwi']
+    Dwo = params['Dwo']
+    Lp = params['Lp']
+    Ls = params['Ls']
+    N = params['N']
+    Np = params['Np']
+    Tgin = params['Tgin']
+    dp = params['dp']
+    ef0 = params['ef0']
+    kw = params['kw']
+    phi = params['phi']
+
+    # volume fraction of gas in bed and freeboard [-]
+    afg = np.ones(N)
+    afg[0:Np] = ef
+
+    # density of gas along reactor axis [kg/m³]
+    rhog = rhob_g / afg
+
+    # gas velocity along the reactor [m/s]
+    ug = mfg / rhob_gav
+
+    Re_dc = abs(rhog) * abs(-ug - v) * ds / mu
+    Nud = 2 + 0.6 * Re_dc**0.5 * Pr**0.33
+    hs = Nud * kg / ds
+
+    Rep = abs(rhog) * np.abs(ug) * dp / mu
+    Nup = (
+        (7 - 10 * afg + 5 * afg**2) * (1 + 0.7 * Rep**0.2 * Pr**0.33)
+        + (1.33 - 2.4 * afg + 1.2 * afg**2) * Rep**0.7 * Pr**0.33
+    )
+    epb = (1 - ef0) * Ls / Lp
+    hp = 6 * epb * kg * Nup / (phi * dp**2)
+    Uhb = 1 / (4 / (np.pi * Dwi * hp) + np.pi * Dwi / (2 * kw) * np.log(Dwo / Dwi))
+
+    qg = -6 * hs * rhob_s / (rhos * ds) * (Tg - Ts) - hp * (Tg - Tp) + 4 / Db * Uhb * (Tw - Tg)
+
+    # - - -
+
+    Cg = rhob_g * cpg
+
+    # - - -
+
+    ReD = abs(rhog) * np.abs(ug) * Db / mu
+    Nuf = 0.023 * ReD**0.8 * Pr**0.4
+    hf = Nuf * kg / Db
+    Uhf = 1 / (1 / hf + np.pi * Dwi / (2 * kw) * np.log(Dwo / Dwi))
+
+    # - - -
+
+    # ∂T𝗀/∂t along height of the reactor [K]
+    dtgdt = np.zeros(N)
+
+    dtgdt[0] = -ug[0] / (dx[0]) * (Tg[0] - Tgin) + (-qgs[0] + qg[0]) / Cg[0]
+
+    dtgdt[1:Np] = -ug[1:Np] / dx[1:Np] * (Tg[1:Np] - Tg[0:Np - 1]) + (-qgs[1:Np] + qg[1:Np]) / Cg[1:Np]
+
+    dtgdt[Np:N] = (
+        -ug[Np:N] / dx[Np:N] * (Tg[Np:N] - Tg[Np - 1:N - 1])
+        - (qgs[Np:N] - 4 / Db * Uhf[Np:N] * (Tw[Np:N] - Tg[Np:N])) / Cg[Np:N]
+    )
+
+    return dtgdt

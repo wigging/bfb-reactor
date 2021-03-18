@@ -43,7 +43,13 @@ def get_params(json_file):
     rhog_in = Pin * Mgin / (R * Tgin) * 1e-3
     rhob_gin = rhog_in
 
+    # reactor internal diameter, same as Db [m]
+    Dwo = json_dict['Dwo']
+    xw = json_dict['xw']
+    Dwi = Dwo - 2 * xw
+
     # add calculated parameters to JSON dictionary
+    json_dict['Dwi'] = Dwi
     json_dict['N'] = N
     json_dict['Np'] = Np
     json_dict['mfgin'] = mfgin

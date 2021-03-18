@@ -12,12 +12,20 @@
     "tf": 100,
 
     // Reactor dimensions
+    // Db internal diameter of the bed [m]
+    // Dwo external diameter of the reactor [m]
     // L overall reactor height [m]
     // Ls height of fuel inlet above distributor [m]
+    // Lp ?
+    // kw thermal conductivity of the steel wall [W/(m⋅K)]
+    // xw thickness of the reactor wall [m]
     "Db": 0.1,
+    "Dwo": 0.1042,
     "L": 1.0,
     "Ls": 0.212,
     "Lp": 0.2347,
+    "kw": 16,
+    "xw": 0.00211,
 
     // Gas phase
     // Mgin molecular weight at gas inlet [g/mol]

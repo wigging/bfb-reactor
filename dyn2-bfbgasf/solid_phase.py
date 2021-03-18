@@ -46,10 +46,12 @@ def calc_sfc(params, ds):
     return sfc
 
 
-def ts_rate(params, dx, N, Np, Ts):
+def ts_rate(params, dx, Ts):
     """
     Solid temperature rate ∂T𝗌/∂t.
     """
+    N = params['N']
+    Np = params['Np']
     N1 = params['N1']
     Tsin = params['Tsin']
 
