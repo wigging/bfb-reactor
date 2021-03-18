@@ -1,30 +1,17 @@
-import json
-
+import plotter
+from parameters import get_params
 from solver import solver
-
-
-def _get_params(json_file):
-    """
-    Get parameters from JSON file. Commented lines in the JSON file that begin
-    with // are ignored. Parameters are returned as a dictionary.
-    """
-    json_str = ''
-
-    with open(json_file) as jfile:
-        for line in jfile:
-            if '//' not in line:
-                json_str += line
-
-    json_dict = json.loads(json_str)
-    return json_dict
 
 
 def main():
     """
     Run the 1D bubbling fluidized bed (BFB) gasification model.
     """
-    params = _get_params('dyn2-bfbgasf/params.json')
+    params = get_params('dyn2-bfbgasf/params.json')
     results = solver(params)
+
+    plotter.plot_mfg(results)
+    plotter.show_plots()
 
 
 if __name__ == '__main__':
