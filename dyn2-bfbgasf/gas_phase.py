@@ -14,11 +14,44 @@ ef = 0.48572
 kg = np.full(100, 0.11229)
 mu = np.full(100, 4.1547e-05)
 qgs = np.zeros(100)
+rhob_h2 = np.full(100, 1e-8)
+rhob_h2o = np.full(100, 0.15)
+rhob_ch4 = np.full(100, 1e-8)
+rhob_co = np.full(100, 1e-8)
+rhob_co2 = np.full(100, 1e-8)
+rhob_t = np.full(100, 1e-8)
 rhob_g = np.full(100, 0.15)
 rhob_s = np.full(100, 1e-12)
 rhos = np.full(100, 423)
 v = np.full(100, 0.34607)
 # <<<
+
+# Molecular weight [g/mol]
+M_CH4 = 16
+M_CO = 28
+M_CO2 = 44
+M_H2 = 2
+M_H2O = 18
+
+# Gas viscosity coefficients (see Table S1 in Agu 2019)
+# coefficients listed in order of CH4, CO, CO2, H2, H2O
+Amu = np.array([3.844, 23.811, 11.811, 27.758, -36.826])
+Bmu = np.array([4.0112, 5.3944, 4.9838, 2.120, 4.290]) * 1e-1
+Cmu = np.array([-1.4303, -1.5411, -1.0851, -0.3280, -0.1620]) * 1e-4
+
+# Gas specific heat capacity coefficients (see Table S2 in Agu 2019)
+# coefficients listed in order of CH4, CO, CO2, H2, H2O
+Acp = np.array([34.942, 29.556, 27.437, 25.399, 33.933])
+Bcp = np.array([-39.957, -6.5807, 42.315, 20.178, -8.4186]) * 1e-3
+Ccp = np.array([19.184, 2.0130, -1.9555, -3.8549, 2.9906]) * 1e-5
+Dcp = np.array([-15.303, -1.2227, 0.39968, 3.188, -1.7825]) * 1e-8
+Ecp = np.array([39.321, 2.2617, -0.29872, -8.7585, 3.6934]) * 1e-12
+
+# Gas thermal conductivity coefficients (see Table S3 in Agu 2019)
+# coefficients listed in order of CH4, CO, CO2, H2, H2O
+Ak = np.array([-0.935, 0.158, -1.200, 3.951, 0.053]) * 1e-2
+Bk = np.array([1.4028, 0.82511, 1.0208, 4.5918, 0.47093]) * 1e-4
+Ck = np.array([3.3180, 1.9081, -2.2403, -6.4933, 4.9551]) * 1e-8
 
 
 def calc_dP(params, dx, Tg):
@@ -56,6 +89,46 @@ def calc_rhobgav(N):
     rhob_gav[N - 1] = rhob_g[N - 1]
 
     return rhob_gav
+
+
+def calc_mix_props(Tg):
+    """
+    Calculate gas mixture properties along the reactor.
+    """
+
+    # molecular weights
+    M = np.array([[M_CH4], [M_CO], [M_CO2], [M_H2], [M_H2O]])
+
+    # mass fractions
+    rhobx = np.array([rhob_ch4, rhob_co, rhob_co2, rhob_h2, rhob_h2o])
+    yx = rhobx / rhob_g
+
+    # mole fractions
+    sumYM = np.sum(yx, axis=0) / (M_CH4 + M_CO + M_CO2 + M_H2 + M_H2O)
+    xg = (yx / M) / sumYM
+
+    # viscosity
+    mux = (Amu[:, None] + Bmu[:, None] * Tg + Cmu[:, None] * Tg**2) * 1e-7
+
+    # thermal conductivity
+    kx = Ak[:, None] + Bk[:, None] * Tg + Ck[:, None] * Tg**2
+
+    # heat capacity
+    cpx = Acp[:, None] + Bcp[:, None] * Tg + Ccp[:, None] * Tg**2 + Dcp[:, None] * Tg**3 + Ecp[:, None] * Tg**4
+
+    # calculate mixture properties
+    Mg = sum(xg * M)
+    mu = sum(xg * mux * M**0.5) / sum(xg * M**0.5)
+    cpgm = sum(xg * cpx)
+    kg = (sum(xg / kx))**(-1)
+
+    cpt = -100 + 4.40 * Tg - 1.57e-3 * Tg**2
+    cpgg = cpgm / Mg * 1e3
+    yt = rhob_t / rhob_g
+    cpg = yt * cpt + (1 - yt) * cpgg
+    Pr = cpg * mu / kg
+
+    return Mg, Pr, cpg, cpgm, kg, mu, xg
 
 
 def mfg_terms(params, ds, dx, mfg, rhob_gav, sfc):

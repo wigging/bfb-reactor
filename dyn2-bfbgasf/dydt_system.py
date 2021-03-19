@@ -22,6 +22,7 @@ def dydt(t, y, params, dx):
     # gas properties
     DP = gas.calc_dP(params, dx, Tg)
     rhob_gav = gas.calc_rhobgav(N)
+    Mg, Pr, cpg, cpgm, kg, mu, xg = gas.calc_mix_props(Tg)
 
     # gas mass flux terms
     Cmf, Smgg, SmgV = gas.mfg_terms(params, ds, dx, mfg, rhob_gav, sfc)
