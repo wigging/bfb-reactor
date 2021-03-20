@@ -54,6 +54,29 @@ def plot_tg(results):
     _style_axis(ax2)
 
 
+def plot_rhobb(results):
+    x = results['x']
+    t = results['t']
+    rhobb = results['rhobb']
+
+    # rhobb along height of the reactor at final time
+    rhobbx = np.concatenate(([1100], rhobb[:, -1], [rhobb[-1, -1]]))
+
+    _, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, sharey=True, tight_layout=True)
+
+    ax1.plot(t, rhobb[0], label='btm')
+    ax1.plot(t, rhobb[50], label='mid')
+    ax1.plot(t, rhobb[-1], label='top')
+    ax1.set_xlabel('t [s]')
+    ax1.set_ylabel('rhobb [kg/m³]')
+    ax1.legend()
+    _style_axis(ax1)
+
+    ax2.plot(x, rhobbx)
+    ax2.set_xlabel('x [m]')
+    _style_axis(ax2)
+
+
 def plot_mfg(results):
     x = results['x']
     t = results['t']

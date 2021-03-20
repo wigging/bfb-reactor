@@ -4,6 +4,7 @@ import numpy as np
 # >>>
 # FIXME: these variables should be calculated, assumes that N = 100
 Cs = np.full(100, 1.8e-09)
+Sb = np.full(100, -5.694e-24)
 Xcr = np.full(100, 0.5)
 qs = np.full(100, 0.00086252)
 qs[-25:] = -0.00032331
@@ -80,3 +81,36 @@ def ts_rate(params, dx, Ts):
     )
 
     return dtsdt
+
+
+def rhobb_rate(params, dx, mfg, rhobb, rhob_gav):
+    """
+    Biomass mass concentration rate ∂ρ̅𝖻/∂t.
+    """
+    Db = params['Db']
+    N = params['N']
+    Np = params['Np']
+    N1 = params['N1']
+    ms_dot = params['msdot'] / 3600
+
+    # bed cross-sectional area [m²]
+    Ab = (np.pi / 4) * (Db**2)
+
+    # gas velocity along the reactor [m/s]
+    ug = mfg / rhob_gav
+
+    # ∂ρ̅𝖻/∂t along height of the reactor
+    drhobb_dt = np.zeros(N)
+
+    # Below fuel inlet in bed
+    drhobb_dt[0:N1 - 1] = -1 / dx[0:N1 - 1] * (-rhobb[1:N1] * v[1:N1] + rhobb[0:N1 - 1] * v[0:N1 - 1]) + Sb[0:N1 - 1]
+
+    # At fuel inlet in bed
+    vin = max(v[N1 - 1], ug[N1 - 1])
+    rhobbin = ms_dot / (vin * Ab)
+    drhobb_dt[N1 - 1] = -1 / dx[N1 - 1] * (-rhobbin * v[N1 - 1] + rhobb[N1 - 1] * v[N1 - 1] - rhobb[N1 - 2] * v[N1 - 2]) + Sb[N1 - 1]
+
+    # Above fuel inlet in bed
+    drhobb_dt[N1:Np] = -1 / dx[N1:Np] * (rhobb[N1:Np] * v[N1:Np] - rhobb[N1 - 1:Np - 1] * v[N1 - 1:Np - 1]) + Sb[N1:Np]
+
+    return drhobb_dt

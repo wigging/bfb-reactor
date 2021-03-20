@@ -3,16 +3,11 @@ import numpy as np
 
 # >>>
 # FIXME: these variables should be calculated, assumes that N = 100
-Mg = np.full(100, 18)
-Pr = np.full(100, 0.87446)
 Sg = np.full(100, 5.8362e-24)
 Tp = np.zeros(100)
 Tp[:75] = 1100
 Tw = np.full(100, 1100)
-cpg = np.full(100, 2363.4)
 ef = 0.48572
-kg = np.full(100, 0.11229)
-mu = np.full(100, 4.1547e-05)
 qgs = np.zeros(100)
 rhob_h2 = np.full(100, 1e-8)
 rhob_h2o = np.full(100, 0.15)
@@ -54,7 +49,7 @@ Bk = np.array([1.4028, 0.82511, 1.0208, 4.5918, 0.47093]) * 1e-4
 Ck = np.array([3.3180, 1.9081, -2.2403, -6.4933, 4.9551]) * 1e-8
 
 
-def calc_dP(params, dx, Tg):
+def calc_dP(params, dx, Mg, Tg):
     """
     Calculate pressure drop along the reactor.
     """
@@ -131,7 +126,7 @@ def calc_mix_props(Tg):
     return Mg, Pr, cpg, cpgm, kg, mu, xg
 
 
-def mfg_terms(params, ds, dx, mfg, rhob_gav, sfc):
+def mfg_terms(params, ds, dx, mfg, mu, rhob_gav, sfc):
     """
     Source terms for calculating gas mass flux.
     """
@@ -241,7 +236,7 @@ def mfg_rate(params, Cmf, dx, DP, mfg, rhob_gav, Smgg, SmgV):
     return dmfgdt
 
 
-def tg_rate(params, ds, dx, mfg, rhob_gav, Tg, Ts):
+def tg_rate(params, cpg, ds, dx, kg, mfg, mu, Pr, rhob_gav, Tg, Ts):
     """
     Gas temperature rate ∂T𝗀/∂t.
     """
