@@ -5,11 +5,17 @@ import numpy as np
 # FIXME: these variables should be calculated, assumes that N = 100
 Cs = np.full(100, 1.8e-09)
 Sb = np.full(100, -5.694e-24)
+Sc = np.full(100, 2.1091e-25)
 Xcr = np.full(100, 0.5)
+ef = 0.48572
 qs = np.full(100, 0.00086252)
 qs[-25:] = -0.00032331
 qss = np.full(100, -3.6442e-19)
-v = np.full(100, 0.34607)
+rhob_g = np.full(100, 0.15)
+rhob_s = np.full(100, 1e-12)
+rhos = np.full(100, 423)
+umf = 0.14251
+# v = np.full(100, 0.34607)
 yc = np.full(100, 1e-8)
 # <<<
 
@@ -47,7 +53,7 @@ def calc_sfc(params, ds):
     return sfc
 
 
-def ts_rate(params, dx, Ts):
+def ts_rate(params, dx, Ts, v):
     """
     Solid temperature rate ∂T𝗌/∂t.
     """
@@ -83,7 +89,7 @@ def ts_rate(params, dx, Ts):
     return dtsdt
 
 
-def rhobb_rate(params, dx, mfg, rhobb, rhob_gav):
+def rhobb_rate(params, dx, mfg, rhobb, rhob_gav, v):
     """
     Biomass mass concentration rate ∂ρ̅𝖻/∂t.
     """
@@ -114,3 +120,82 @@ def rhobb_rate(params, dx, mfg, rhobb, rhob_gav):
     drhobb_dt[N1:Np] = -1 / dx[N1:Np] * (rhobb[N1:Np] * v[N1:Np] - rhobb[N1 - 1:Np - 1] * v[N1 - 1:Np - 1]) + Sb[N1:Np]
 
     return drhobb_dt
+
+
+def v_rate(params, ds, dx, mfg, mu, rhob_gav, v, x):
+    """
+    Solid fuel velocity rate ∂v/∂t.
+    """
+    Db = params['Db']
+    Lp = params['Lp']
+    Ls = params['Ls']
+    N = params['N']
+    Np = params['Np']
+    cf = params['cf']
+    dp = params['dp']
+    e = params['e']
+    ef0 = params['ef0']
+    lb = params['lb']
+    rhop = params['rhop']
+    ugin = params['ugin']
+
+    fw = 0.25
+    g = 9.81
+
+    # volume fraction of gas in bed and freeboard [-]
+    afg = np.ones(N)
+    afg[0:Np] = ef
+
+    # density of gas along reactor axis [kg/m³]
+    rhog = rhob_g / afg
+
+    # gas velocity along the reactor [m/s]
+    ug = mfg / rhob_gav
+
+    Ugb = np.mean(np.append(afg[0:Np] * ug[0:Np], ugin))
+    Ugb = max(ugin, Ugb)
+    Dbu = 0.00853 * (1 + 27.2 * (Ugb - umf))**(1 / 3) * (1 + 6.84 * x)**1.21
+    Vb = 1.285 * (Dbu / Db)**1.52 * Db
+
+    ub = 12.51 * (Ugb - umf)**0.362 * (Dbu / Db)**0.52 * Db
+
+    sfc = 2 * (3 / 2 * ds**2 * lb)**(2 / 3) / (ds * (ds + 2 * lb))
+
+    Re_dc = abs(rhog) * abs(-ug - v) * ds / mu
+
+    Cd = (
+        24 / Re_dc * (1 + 8.1716 * Re_dc**(0.0964 + 0.5565 * sfc) * np.exp(-4.0655 * sfc))
+        + Re_dc * 73.69 / (Re_dc + 5.378 * np.exp(6.2122 * sfc)) * np.exp(-5.0748 * sfc)
+    )
+
+    epb = (1 - ef0) * Ls / Lp
+    Yb = 1 / (1 + epb * rhos / rhob_s)
+    afs = Yb * (1 - ef)
+
+    rhopb = np.zeros(N)
+    rhopb[0:Np] = epb * rhop
+
+    g0 = 1 / afg + 3 * ds * dp / (afg**2 * (dp + ds)) * (afs / ds + epb / dp)
+    cs = 3 * np.pi * (1 + e) * (0.5 + cf * np.pi / 8) * (dp + ds)**2 / (rhop * dp**3 + rhos * ds**3) * afs * rhopb * g0
+
+    Sp = Sb + Sc
+
+    Spav = np.zeros(N)
+    Spav[0:N - 1] = 0.5 * (Sp[0:N - 1] + Sp[1:N])
+    Spav[N - 1] = Sp[N - 1]
+
+    # Solid fuel velocity rate ∂v/∂t
+    # ------------------------------------------------------------------------
+    dvdt = np.zeros(N)
+
+    # in the bed
+    dvdt[0:Np] = (
+        -1 / dx[0:Np] * v[0:Np] * (v[0:Np] - v[1:Np + 1])
+        + g * (rhos[0:Np] - rhog[0:Np]) / rhos[0:Np]
+        + fw * rhop * Vb[0:Np] / (dx[0:Np] * rhos[0:Np]) * (ub[0:Np] - ub[1:Np + 1])
+        + (3 / 4) * (rhog[0:Np] / rhos[0:Np]) * (Cd[0:Np] / ds[0:Np]) * np.abs(-ug[0:Np] - v[0:Np]) * (-ug[0:Np] - v[0:Np])
+        - cs[0:Np] * v[0:Np] * np.abs(v[0:Np])
+        + Spav[0:Np] * v[0:Np] / rhos[0:Np]
+    )
+
+    return dvdt

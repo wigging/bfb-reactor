@@ -30,14 +30,18 @@ def get_params(json_file):
     msdot = json_dict['msdot'] / 3600
     mfgin = SB * msdot / Ab
 
+    # inlet gas velocity [m/s]
+    R = 8.314
+    Mgin = json_dict['Mgin']
+    Tgin = json_dict['Tgin']
+    rhogin = json_dict['P'] * Mgin / (R * Tgin) * 1e-3
+    ugin = mfgin / rhogin
+
     # bulk gas density at inlet [kg/m³]
     Ls = json_dict['Ls']
-    Mgin = json_dict['Mgin']
     Pa = json_dict['Pa']
-    Tgin = json_dict['Tgin']
     ef0 = json_dict['ef0']
     rhop = json_dict['rhop']
-    R = 8.314
     g = 9.81
     Pin = (1 - ef0) * rhop * g * Ls + Pa
     rhog_in = Pin * Mgin / (R * Tgin) * 1e-3
@@ -54,6 +58,7 @@ def get_params(json_file):
     json_dict['Np'] = Np
     json_dict['mfgin'] = mfgin
     json_dict['rhob_gin'] = rhob_gin
+    json_dict['ugin'] = ugin
 
     # return all parameters along with calculated parameters
     return json_dict

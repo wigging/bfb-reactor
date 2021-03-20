@@ -18,7 +18,7 @@ rhob_t = np.full(100, 1e-8)
 rhob_g = np.full(100, 0.15)
 rhob_s = np.full(100, 1e-12)
 rhos = np.full(100, 423)
-v = np.full(100, 0.34607)
+# v = np.full(100, 0.34607)
 # <<<
 
 # Molecular weight [g/mol]
@@ -126,7 +126,7 @@ def calc_mix_props(Tg):
     return Mg, Pr, cpg, cpgm, kg, mu, xg
 
 
-def mfg_terms(params, ds, dx, mfg, mu, rhob_gav, sfc):
+def mfg_terms(params, ds, dx, mfg, mu, rhob_gav, sfc, v):
     """
     Source terms for calculating gas mass flux.
     """
@@ -236,7 +236,7 @@ def mfg_rate(params, Cmf, dx, DP, mfg, rhob_gav, Smgg, SmgV):
     return dmfgdt
 
 
-def tg_rate(params, cpg, ds, dx, kg, mfg, mu, Pr, rhob_gav, Tg, Ts):
+def tg_rate(params, cpg, ds, dx, kg, mfg, mu, Pr, rhob_gav, Tg, Ts, v):
     """
     Gas temperature rate ∂T𝗀/∂t.
     """
