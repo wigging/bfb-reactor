@@ -1,21 +1,17 @@
 import numpy as np
 
-
 # >>>
 # FIXME: these variables should be calculated, assumes that N = 100
 Cs = np.full(100, 1.8e-09)
-Sb = np.full(100, -5.694e-24)
 Sc = np.full(100, 2.1091e-25)
 Xcr = np.full(100, 0.5)
 ef = 0.48572
 qs = np.full(100, 0.00086252)
 qs[-25:] = -0.00032331
 qss = np.full(100, -3.6442e-19)
-rhob_g = np.full(100, 0.15)
 rhob_s = np.full(100, 1e-12)
 rhos = np.full(100, 423)
 umf = 0.14251
-# v = np.full(100, 0.34607)
 yc = np.full(100, 1e-8)
 # <<<
 
@@ -89,7 +85,7 @@ def ts_rate(params, dx, Ts, v):
     return dtsdt
 
 
-def rhobb_rate(params, dx, mfg, rhobb, rhob_gav, v):
+def rhobb_rate(params, dx, mfg, rhobb, rhob_gav, Sb, v):
     """
     Biomass mass concentration rate ∂ρ̅𝖻/∂t.
     """
@@ -122,7 +118,7 @@ def rhobb_rate(params, dx, mfg, rhobb, rhob_gav, v):
     return drhobb_dt
 
 
-def v_rate(params, ds, dx, mfg, mu, rhob_gav, v, x):
+def v_rate(params, ds, dx, mfg, mu, rhobg, rhob_gav, Sb, v, x):
     """
     Solid fuel velocity rate ∂v/∂t.
     """
@@ -147,7 +143,7 @@ def v_rate(params, ds, dx, mfg, mu, rhob_gav, v, x):
     afg[0:Np] = ef
 
     # density of gas along reactor axis [kg/m³]
-    rhog = rhob_g / afg
+    rhog = rhobg / afg
 
     # gas velocity along the reactor [m/s]
     ug = mfg / rhob_gav

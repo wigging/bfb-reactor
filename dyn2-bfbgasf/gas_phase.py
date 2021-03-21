@@ -1,6 +1,5 @@
 import numpy as np
 
-
 # >>>
 # FIXME: these variables should be calculated, assumes that N = 100
 Sg = np.full(100, 5.8362e-24)
@@ -15,11 +14,10 @@ rhob_ch4 = np.full(100, 1e-8)
 rhob_co = np.full(100, 1e-8)
 rhob_co2 = np.full(100, 1e-8)
 rhob_t = np.full(100, 1e-8)
-rhob_g = np.full(100, 0.15)
 rhob_s = np.full(100, 1e-12)
 rhos = np.full(100, 423)
-# v = np.full(100, 0.34607)
 # <<<
+
 
 # Molecular weight [g/mol]
 M_CH4 = 16
@@ -49,7 +47,7 @@ Bk = np.array([1.4028, 0.82511, 1.0208, 4.5918, 0.47093]) * 1e-4
 Ck = np.array([3.3180, 1.9081, -2.2403, -6.4933, 4.9551]) * 1e-8
 
 
-def calc_dP(params, dx, Mg, Tg):
+def calc_dP(params, dx, Mg, rhobg, Tg):
     """
     Calculate pressure drop along the reactor.
     """
@@ -62,7 +60,7 @@ def calc_dP(params, dx, Mg, Tg):
     afg[0:Np] = ef
 
     # density of gas along reactor axis [kg/m³]
-    rhog = rhob_g / afg
+    rhog = rhobg / afg
 
     # pressure along reactor axis [Pa]
     P = R * rhog * Tg / Mg * 1e3
@@ -73,20 +71,20 @@ def calc_dP(params, dx, Mg, Tg):
     return DP
 
 
-def calc_rhobgav(N):
+def calc_rhobgav(N, rhobg):
     """
     Calculate the average gas mass concentration.
     """
 
     # average gas mass concentration [kg/m³]
     rhob_gav = np.zeros(N)
-    rhob_gav[0:N - 1] = 0.5 * (rhob_g[0:N - 1] + rhob_g[1:N])
-    rhob_gav[N - 1] = rhob_g[N - 1]
+    rhob_gav[0:N - 1] = 0.5 * (rhobg[0:N - 1] + rhobg[1:N])
+    rhob_gav[N - 1] = rhobg[N - 1]
 
     return rhob_gav
 
 
-def calc_mix_props(Tg):
+def calc_mix_props(rhobg, Tg):
     """
     Calculate gas mixture properties along the reactor.
     """
@@ -96,7 +94,7 @@ def calc_mix_props(Tg):
 
     # mass fractions
     rhobx = np.array([rhob_ch4, rhob_co, rhob_co2, rhob_h2, rhob_h2o])
-    yx = rhobx / rhob_g
+    yx = rhobx / rhobg
 
     # mole fractions
     sumYM = np.sum(yx, axis=0) / (M_CH4 + M_CO + M_CO2 + M_H2 + M_H2O)
@@ -119,14 +117,14 @@ def calc_mix_props(Tg):
 
     cpt = -100 + 4.40 * Tg - 1.57e-3 * Tg**2
     cpgg = cpgm / Mg * 1e3
-    yt = rhob_t / rhob_g
+    yt = rhob_t / rhobg
     cpg = yt * cpt + (1 - yt) * cpgg
     Pr = cpg * mu / kg
 
     return Mg, Pr, cpg, cpgm, kg, mu, xg
 
 
-def mfg_terms(params, ds, dx, mfg, mu, rhob_gav, sfc, v):
+def mfg_terms(params, ds, dx, mfg, mu, rhobg, rhob_gav, sfc, v):
     """
     Source terms for calculating gas mass flux.
     """
@@ -151,7 +149,7 @@ def mfg_terms(params, ds, dx, mfg, mu, rhob_gav, sfc, v):
     afg[0:Np] = ef
 
     # density of gas along reactor axis [kg/m³]
-    rhog = rhob_g / afg
+    rhog = rhobg / afg
 
     # gas velocity along the reactor [m/s]
     ug = mfg / rhob_gav
@@ -236,7 +234,7 @@ def mfg_rate(params, Cmf, dx, DP, mfg, rhob_gav, Smgg, SmgV):
     return dmfgdt
 
 
-def tg_rate(params, cpg, ds, dx, kg, mfg, mu, Pr, rhob_gav, Tg, Ts, v):
+def tg_rate(params, cpg, ds, dx, kg, mfg, mu, Pr, rhobg, rhob_gav, Tg, Ts, v):
     """
     Gas temperature rate ∂T𝗀/∂t.
     """
@@ -258,7 +256,7 @@ def tg_rate(params, cpg, ds, dx, kg, mfg, mu, Pr, rhob_gav, Tg, Ts, v):
     afg[0:Np] = ef
 
     # density of gas along reactor axis [kg/m³]
-    rhog = rhob_g / afg
+    rhog = rhobg / afg
 
     # gas velocity along the reactor [m/s]
     ug = mfg / rhob_gav
@@ -280,7 +278,7 @@ def tg_rate(params, cpg, ds, dx, kg, mfg, mu, Pr, rhob_gav, Tg, Ts, v):
 
     # - - -
 
-    Cg = rhob_g * cpg
+    Cg = rhobg * cpg
 
     # - - -
 
@@ -304,3 +302,24 @@ def tg_rate(params, cpg, ds, dx, kg, mfg, mu, Pr, rhob_gav, Tg, Ts, v):
     )
 
     return dtgdt
+
+
+def rhobg_rate(params, dx, mfg):
+    """
+    Gas bulk density rate ∂ρ𝗀/∂t.
+    """
+    Db = params['Db']
+    N = params['N']
+    SB = params['SB']
+    msdot = params['msdot'] / 3600
+
+    Ab = (np.pi / 4) * (Db**2)
+    mfgin = SB * msdot / Ab
+
+    drhobgdt = np.zeros(N)
+
+    drhobgdt[0] = -(mfg[0] - mfgin) / dx[0] + Sg[0]
+
+    drhobgdt[1:N] = -(mfg[1:N] - mfg[0:N - 1]) / dx[1:N] + Sg[1:N]
+
+    return drhobgdt
