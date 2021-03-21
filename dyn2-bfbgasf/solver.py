@@ -10,6 +10,7 @@ def solver(params):
     Solver function.
     """
     N = params['N']
+    Np = params['Np']
 
     # one-dimensional grid steps and points
     dx, x = grid(params)
@@ -22,9 +23,11 @@ def solver(params):
     mfg0 = np.full(N, 0.2)
     rhobg0 = np.full(N, 0.15)
     rhobh2o0 = np.full(N, 0.15)
+    Tp0 = np.zeros(N)
+    Tp0[0:Np] = 1100
 
     # solve system of ODEs using SciPy ODE solver
-    y0 = np.concatenate((Ts0, Tg0, rhobb0, v0, mfg0, rhobg0, rhobh2o0))
+    y0 = np.concatenate((Ts0, Tg0, rhobb0, v0, mfg0, rhobg0, rhobh2o0, Tp0))
     tspan = (0, params['tf'])
     args = (params, dx, x)
     sol = solve_ivp(dydt, tspan, y0, method='Radau', rtol=1e-6, args=args)
@@ -46,7 +49,8 @@ def solver(params):
         'rhobb': sol.y[2 * N:3 * N],
         'v': sol.y[3 * N:4 * N],
         'mfg': sol.y[4 * N:5 * N],
-        'rhobg': sol.y[5 * N:6 * N]
+        'rhobg': sol.y[5 * N:6 * N],
+        'Tp': sol.y[6 * N:7 * N]
     }
 
     return results

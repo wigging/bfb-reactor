@@ -19,6 +19,7 @@ def dydt(t, y, params, dx, x):
     mfg = y[4 * N:5 * N]
     rhob_g = y[5 * N:6 * N]
     rhob_h2o = y[6 * N:7 * N]
+    Tp = y[7 * N:8 * N]
 
     # solid properties
     ds = solid.calc_ds(params)
@@ -44,8 +45,9 @@ def dydt(t, y, params, dx, x):
     dmfg_dt = gas.mfg_rate(params, Cmf, dx, DP, mfg, rhob_gav, Smgg, SmgV)
     drhobg_dt = gas.rhobg_rate(params, dx, mfg)
     drhobh2o_dt = gas.rhobh2o_rate(params, dx, mfg, rhob_g, rhob_h2o, Sh2o)
+    dTp_dt = solid.tp_rate(params, ds, kg, mfg, mu, Pr, rhob_g, rhob_gav, Tg, Tp, Ts,)
 
     # system of equations
-    dy_dt = np.concatenate((dTs_dt, dTg_dt, drhobb_dt, dv_dt, dmfg_dt, drhobg_dt, drhobh2o_dt))
+    dy_dt = np.concatenate((dTs_dt, dTg_dt, drhobb_dt, dv_dt, dmfg_dt, drhobg_dt, drhobh2o_dt, dTp_dt))
 
     return dy_dt

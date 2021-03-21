@@ -4,8 +4,10 @@ import numpy as np
 # FIXME: these variables should be calculated, assumes that N = 100
 Cs = np.full(100, 1.8e-09)
 Sc = np.full(100, 2.1091e-25)
+Tw = np.full(100, 1100)
 Xcr = np.full(100, 0.5)
 ef = 0.48572
+hps = np.full(100, 1.0781e-06)
 qs = np.full(100, 0.00086252)
 qs[-25:] = -0.00032331
 qss = np.full(100, -3.6442e-19)
@@ -195,3 +197,52 @@ def v_rate(params, ds, dx, mfg, mu, rhobg, rhob_gav, Sb, v, x):
     )
 
     return dvdt
+
+
+def tp_rate(params, ds, kg, mfg, mu, Pr, rhob_g, rhob_gav, Tg, Tp, Ts,):
+    """
+    Bed particle temperature rate ∂Tp/∂t.
+    """
+    Db = params['Db']
+    Lp = params['Lp']
+    Ls = params['Ls']
+    N = params['N']
+    Np = params['Np']
+    cpp = params['cpp']
+    dp = params['dp']
+    ef0 = params['ef0']
+    ep = params['ep']
+    es = params['es']
+    ew = params['ew']
+    phi = params['phi']
+    rhop = params['rhop']
+    sc = 5.67e-8
+
+    afg = np.ones(N)
+    afg[0:Np] = ef
+    rhog = rhob_g / afg
+
+    ug = mfg / rhob_gav
+
+    epb = (1 - ef0) * Ls / Lp
+
+    Rep = abs(rhog) * abs(ug) * dp / mu
+    Nup = (7 - 10 * afg + 5 * afg**2) * (1 + 0.7 * Rep**0.2 * Pr**0.33) + (1.33 - 2.4 * afg + 1.2 * afg**2) * Rep**0.7 * Pr**0.33
+    hp = 6 * epb * kg * Nup / (phi * dp**2)
+
+    qp = (
+        hp * (Tg - Tp) - 6 * es * sc * rhob_s / (rhos * ds) * (Tp**4 - Ts**4)
+        + 4 / Db * epb * 1 / ((1 - ep) / (ep * epb) + (1 - ew) / ew + 1) * sc * (Tw**4 - Tp**4)
+        - hps * (Tp - Ts)
+    )
+
+    rhopb = np.zeros(N)
+    rhopb[0:Np] = epb * rhop
+
+    Cp = rhopb * cpp
+
+    # Bed particle temperature rate ∂Tp/∂t
+    dtpdt = np.zeros(N)
+    dtpdt[0:Np] = qp[0:Np] / Cp[0:Np]
+
+    return dtpdt
