@@ -9,7 +9,6 @@ Tw = np.full(100, 1100)
 ef = 0.48572
 qgs = np.zeros(100)
 rhob_h2 = np.full(100, 1e-8)
-rhob_h2o = np.full(100, 0.15)
 rhob_ch4 = np.full(100, 1e-8)
 rhob_co = np.full(100, 1e-8)
 rhob_co2 = np.full(100, 1e-8)
@@ -84,7 +83,7 @@ def calc_rhobgav(N, rhobg):
     return rhob_gav
 
 
-def calc_mix_props(rhobg, Tg):
+def calc_mix_props(rhobg, rhob_h2o, Tg):
     """
     Calculate gas mixture properties along the reactor.
     """
@@ -308,18 +307,31 @@ def rhobg_rate(params, dx, mfg):
     """
     Gas bulk density rate ∂ρ𝗀/∂t.
     """
-    Db = params['Db']
     N = params['N']
-    SB = params['SB']
-    msdot = params['msdot'] / 3600
-
-    Ab = (np.pi / 4) * (Db**2)
-    mfgin = SB * msdot / Ab
+    mfgin = params['mfgin']
 
     drhobgdt = np.zeros(N)
-
     drhobgdt[0] = -(mfg[0] - mfgin) / dx[0] + Sg[0]
-
     drhobgdt[1:N] = -(mfg[1:N] - mfg[0:N - 1]) / dx[1:N] + Sg[1:N]
 
     return drhobgdt
+
+
+def rhobh2o_rate(params, dx, mfg, rhob_g, rhob_h2o, Sh2o):
+    """
+    H₂O mass concentration rate ∂ρH₂O/∂t.
+    """
+    N = params['N']
+    ugin = params['ugin']
+    rhob_gin = params['rhob_gin']
+
+    rhog_in = rhob_gin
+    rhobh2o_in = rhog_in
+
+    yH2O = rhob_h2o / rhob_g
+
+    drhobh2o_dt = np.zeros(N)
+    drhobh2o_dt[0] = -(yH2O[0] * mfg[0] - rhobh2o_in * ugin) / dx[0] + Sh2o[0]
+    drhobh2o_dt[1:N] = -(yH2O[1:N] * mfg[1:N] - yH2O[0:N - 1] * mfg[0:N - 1]) / dx[1:N] + Sh2o[1:N]
+
+    return drhobh2o_dt

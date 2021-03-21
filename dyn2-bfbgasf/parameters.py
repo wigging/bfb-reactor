@@ -8,6 +8,9 @@ def get_params(json_file):
     with // are ignored. JSON data is returned as a dictionary. Calculate
     inlet parameters and add them to the dictionary.
     """
+    R = 8.314
+    g = 9.81
+
     json_str = ''
 
     with open(json_file) as jfile:
@@ -31,7 +34,6 @@ def get_params(json_file):
     mfgin = SB * msdot / Ab
 
     # inlet gas velocity [m/s]
-    R = 8.314
     Mgin = json_dict['Mgin']
     Tgin = json_dict['Tgin']
     rhogin = json_dict['P'] * Mgin / (R * Tgin) * 1e-3
@@ -42,7 +44,6 @@ def get_params(json_file):
     Pa = json_dict['Pa']
     ef0 = json_dict['ef0']
     rhop = json_dict['rhop']
-    g = 9.81
     Pin = (1 - ef0) * rhop * g * Ls + Pa
     rhog_in = Pin * Mgin / (R * Tgin) * 1e-3
     rhob_gin = rhog_in

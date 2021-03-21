@@ -32,11 +32,13 @@
     // Pa       ambient pressure [Pa]
     // SB       steam to biomass ratio [-]
     // Tgin     gas inlet temperature [K]
+    // wH2O
     "Mgin": 18,
     "P": 1.013e5,
     "Pa": 1.013e5,
     "SB": 1.0,
     "Tgin": 1073,
+    "wH2O": 0.062,
 
     // Solid phase
     // Tsin     solid fuel inlet temperature [K]

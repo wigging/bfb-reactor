@@ -21,9 +21,10 @@ def solver(params):
     v0 = np.full(N, params['ugin'])
     mfg0 = np.full(N, 0.2)
     rhobg0 = np.full(N, 0.15)
+    rhobh2o0 = np.full(N, 0.15)
 
     # solve system of ODEs using SciPy ODE solver
-    y0 = np.concatenate((Ts0, Tg0, rhobb0, v0, mfg0, rhobg0))
+    y0 = np.concatenate((Ts0, Tg0, rhobb0, v0, mfg0, rhobg0, rhobh2o0))
     tspan = (0, params['tf'])
     args = (params, dx, x)
     sol = solve_ivp(dydt, tspan, y0, method='Radau', rtol=1e-6, args=args)
