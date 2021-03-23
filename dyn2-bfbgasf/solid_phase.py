@@ -246,3 +246,17 @@ def tp_rate(params, ds, kg, mfg, mu, Pr, rhob_g, rhob_gav, Tg, Tp, Ts,):
     dtpdt[0:Np] = qp[0:Np] / Cp[0:Np]
 
     return dtpdt
+
+
+def rhobc_rate(params, dx, rhob_c, v):
+    """
+    here
+    """
+    N = params['N']
+    Np = params['Np']
+
+    drhobc_dt = np.zeros(N)
+    drhobc_dt[0] = -1 / dx[0] * (-rhob_c[1] * v[1] + rhob_c[0] * v[0]) + Sc[0]
+    drhobc_dt[1:Np] = -1 / dx[1:Np] * (-rhob_c[2:Np + 1] * v[2:Np + 1] + rhob_c[1:Np] * v[1:Np]) + Sc[1:Np]
+
+    return drhobc_dt

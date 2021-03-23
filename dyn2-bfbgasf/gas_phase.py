@@ -3,6 +3,8 @@ import numpy as np
 # >>>
 # FIXME: these variables should be calculated, assumes that N = 100
 Sg = np.full(100, 5.8362e-24)
+Sh2 = np.full(100, 1.4633e-29)
+Sch4 = np.full(100, 4.9883e-25)
 Tp = np.zeros(100)
 Tp[:75] = 1100
 Tw = np.full(100, 1100)
@@ -335,3 +337,37 @@ def rhobh2o_rate(params, dx, mfg, rhob_g, rhob_h2o, Sh2o):
     drhobh2o_dt[1:N] = -(yH2O[1:N] * mfg[1:N] - yH2O[0:N - 1] * mfg[0:N - 1]) / dx[1:N] + Sh2o[1:N]
 
     return drhobh2o_dt
+
+
+def rhobh2_rate(params, dx, mfg, rhob_g, rhob_h2):
+    """
+    here
+    """
+    N = params['N']
+    ugin = params['ugin']
+
+    rhob_h2in = 0
+    yH2 = rhob_h2 / rhob_g
+
+    drhobh2_dt = np.zeros(N)
+    drhobh2_dt[0] = -(yH2[0] * mfg[0] - rhob_h2in * ugin) / dx[0] + Sh2[0]
+    drhobh2_dt[1:N] = -(yH2[1:N] * mfg[1:N] - yH2[0:N - 1] * mfg[0:N - 1]) / dx[1:N] + Sh2[1:N]
+
+    return drhobh2_dt
+
+
+def rhobch4_rate(params, dx, mfg, rhob_g, rhob_ch4):
+    """
+    here
+    """
+    N = params['N']
+    ugin = params['ugin']
+
+    rhob_ch4in = 0
+    yCH4 = rhob_ch4 / rhob_g
+
+    drhobch4_dt = np.zeros(N)
+    drhobch4_dt[0] = -(yCH4[0] * mfg[0] - rhob_ch4in * ugin) / dx[0] + Sch4[0]
+    drhobch4_dt[1:N] = -(yCH4[1:N] * mfg[1:N] - yCH4[0:N - 1] * mfg[0:N - 1]) / dx[1:N] + Sch4[1:N]
+
+    return drhobch4_dt

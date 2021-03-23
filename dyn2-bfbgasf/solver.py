@@ -25,9 +25,12 @@ def solver(params):
     rhobh2o0 = np.full(N, 0.15)
     Tp0 = np.zeros(N)
     Tp0[0:Np] = 1100
+    rhobc0 = np.full(N, 1e-8)
+    rhobh20 = np.full(N, 1e-8)
+    rhobch40 = np.full(N, 1e-8)
 
     # solve system of ODEs using SciPy ODE solver
-    y0 = np.concatenate((Ts0, Tg0, rhobb0, v0, mfg0, rhobg0, rhobh2o0, Tp0))
+    y0 = np.concatenate((Ts0, Tg0, rhobb0, v0, mfg0, rhobg0, rhobh2o0, Tp0, rhobc0, rhobh20, rhobch40))
     tspan = (0, params['tf'])
     args = (params, dx, x)
     sol = solve_ivp(dydt, tspan, y0, method='Radau', rtol=1e-6, args=args)
@@ -46,11 +49,15 @@ def solver(params):
         't': sol.t,
         'Ts': sol.y[0:N],
         'Tg': sol.y[N:2 * N],
-        'rhobb': sol.y[2 * N:3 * N],
+        'rhob_b': sol.y[2 * N:3 * N],
         'v': sol.y[3 * N:4 * N],
         'mfg': sol.y[4 * N:5 * N],
-        'rhobg': sol.y[5 * N:6 * N],
-        'Tp': sol.y[6 * N:7 * N]
+        'rhob_g': sol.y[5 * N:6 * N],
+        'rhob_h2o': sol.y[6 * N:7 * N],
+        'Tp': sol.y[7 * N:8 * N],
+        'rhob_c': sol.y[8 * N:9 * N],
+        'rhob_h2': sol.y[9 * N:10 * N],
+        'rhob_ch4': sol.y[10 * N:11 * N]
     }
 
     return results
