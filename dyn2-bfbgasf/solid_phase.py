@@ -4,6 +4,7 @@ import numpy as np
 # FIXME: these variables should be calculated, assumes that N = 100
 Cs = np.full(100, 1.8e-09)
 Sc = np.full(100, 2.1091e-25)
+Sca = np.full(100, 2.1091e-25)
 Tw = np.full(100, 1100)
 Xcr = np.full(100, 0.5)
 ef = 0.48572
@@ -260,3 +261,86 @@ def rhobc_rate(params, dx, rhob_c, v):
     drhobc_dt[1:Np] = -1 / dx[1:Np] * (-rhob_c[2:Np + 1] * v[2:Np + 1] + rhob_c[1:Np] * v[1:Np]) + Sc[1:Np]
 
     return drhobc_dt
+
+
+def rhobca_rate(params, dx, rhob_ca, v):
+    """
+    Calculate char accumulation rate.
+    """
+    N = params['N']
+    Np = params['Np']
+
+    drhobca_dt = np.zeros(N)
+    drhobca_dt[0] = -1 / dx[0] * (-rhob_ca[1] * v[1] + rhob_ca[0] * v[0]) + Sca[0]
+    drhobca_dt[1:Np] = -1 / dx[1:Np] * (-rhob_ca[2:Np + 1] * v[2:Np + 1] + rhob_ca[1:Np] * v[1:Np]) + Sca[1:Np]
+
+    return drhobca_dt
+
+
+def tw_rate(params, kg, mfg, mu, Pr, rhob_g, rhob_gav, Tg, Tp, Tw):
+    """
+    Calculate wall temperature rate.
+    """
+    Db = params['Db']
+    Dwi = params['Dwi']
+    Dwo = params['Dwo']
+    Lp = params['Lp']
+    Ls = params['Ls']
+    N = params['N']
+    Np = params['Np']
+    N1 = params['N1']
+    Tam = params['Tam']
+    Uha = params['Uha']
+    cpw = params['cpw']
+    dp = params['dp']
+    ef0 = params['ef0']
+    ep = params['ep']
+    ew = params['ew']
+    kw = params['kw']
+    phi = params['phi']
+    rhow = params['rhow']
+
+    sc = 5.67e-8
+
+    afg = np.ones(N)
+    afg[0:Np] = ef
+    rhog = rhob_g / afg
+
+    ug = mfg / rhob_gav
+
+    # Calculations
+    Rep = abs(rhog) * abs(ug) * dp / mu
+    Nup = (7 - 10 * afg + 5 * afg**2) * (1 + 0.7 * Rep**0.2 * Pr**0.33) + (1.33 - 2.4 * afg + 1.2 * afg**2) * Rep**0.7 * Pr**0.33
+
+    epb = (1 - ef0) * Ls / Lp
+    hp = 6 * epb * kg * Nup / (phi * dp**2)
+    Uhb = 1 / (4 / (np.pi * Dwi * hp) + np.pi * Dwi / (2 * kw) * np.log(Dwo / Dwi))
+
+    qwr = np.pi * Dwi * epb / ((1 - ep) / (ep * epb) + (1 - ew) / ew + 1) * sc * (Tw**4 - Tp**4)
+    qwa = (np.pi * Dwo) * Uha * (Tw - Tam)
+    qwgb = (np.pi * Dwi) * Uhb * (Tw - Tg)
+
+    Qe = 0.0 * 9.0e3
+    Qwbb = Qe / Lp - qwr - qwa - qwgb
+    Qwbu = - qwr - qwa - qwgb
+
+    Qwb = np.zeros(N)
+    Qwb[0:N1] = Qwbb[0:N1]
+    Qwb[N1:N] = Qwbu[N1:N]
+
+    ReD = abs(rhog) * abs(ug) * Db / mu
+    Nuf = 0.023 * ReD**0.8 * Pr**0.4
+    hf = Nuf * kg / Db
+    Uhf = 1 / (1 / hf + np.pi * Dwi / (2 * kw) * np.log(Dwo / Dwi))
+    qwgf = (np.pi * Dwi) * Uhf * (Tw - Tg)
+    Qwf = -qwa - qwgf
+
+    mw = rhow * (Dwo**2 - Dwi**2) * np.pi / 4
+
+    # Wall temperature rate ∂T𝗐/∂t
+    # ------------------------------------------------------------------------
+    dtw_dt = np.zeros(N)
+    dtw_dt[0:Np] = Qwb[0:Np] / (mw * cpw)
+    dtw_dt[Np:N] = Qwf[Np:N] / (mw * cpw)
+
+    return dtw_dt

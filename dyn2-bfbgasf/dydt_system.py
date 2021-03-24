@@ -23,6 +23,11 @@ def dydt(t, y, params, dx, x):
     rhob_c = y[8 * N:9 * N]
     rhob_h2 = y[9 * N:10 * N]
     rhob_ch4 = y[10 * N:11 * N]
+    rhob_co = y[11 * N:12 * N]
+    rhob_co2 = y[12 * N:13 * N]
+    rhob_t = y[13 * N:14 * N]
+    rhob_ca = y[14 * N:15 * N]
+    Tw = y[15 * N:16 * N]
 
     # solid properties
     ds = solid.calc_ds(params)
@@ -52,10 +57,16 @@ def dydt(t, y, params, dx, x):
     drhobc_dt = solid.rhobc_rate(params, dx, rhob_c, v)
     drhobh2_dt = gas.rhobh2_rate(params, dx, mfg, rhob_g, rhob_h2)
     drhobch4_dt = gas.rhobch4_rate(params, dx, mfg, rhob_g, rhob_ch4)
+    drhobco_dt = gas.rhobco_rate(params, dx, mfg, rhob_g, rhob_co)
+    drhobco2_dt = gas.rhobco2_rate(params, dx, mfg, rhob_g, rhob_co2)
+    drhobt_dt = gas.rhobt_rate(params, dx, mfg, rhob_g, rhob_t)
+    drhobca_dt = solid.rhobca_rate(params, dx, rhob_ca, v)
+    dTw_dt = solid.tw_rate(params, kg, mfg, mu, Pr, rhob_g, rhob_gav, Tg, Tp, Tw)
 
     # system of equations
     dy_dt = np.concatenate((
         dTs_dt, dTg_dt, drhobb_dt, dv_dt, dmfg_dt, drhobg_dt, drhobh2o_dt,
-        dTp_dt, drhobc_dt, drhobh2_dt, drhobch4_dt))
+        dTp_dt, drhobc_dt, drhobh2_dt, drhobch4_dt, drhobco_dt, drhobco2_dt,
+        drhobt_dt, drhobca_dt, dTw_dt))
 
     return dy_dt

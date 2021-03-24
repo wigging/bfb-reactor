@@ -5,6 +5,9 @@ import numpy as np
 Sg = np.full(100, 5.8362e-24)
 Sh2 = np.full(100, 1.4633e-29)
 Sch4 = np.full(100, 4.9883e-25)
+Sco = np.full(100, 4.154e-24)
+Sco2 = np.full(100, 7.3207e-25)
+St = np.full(100, 9.8272e-26)
 Tp = np.zeros(100)
 Tp[:75] = 1100
 Tw = np.full(100, 1100)
@@ -371,3 +374,54 @@ def rhobch4_rate(params, dx, mfg, rhob_g, rhob_ch4):
     drhobch4_dt[1:N] = -(yCH4[1:N] * mfg[1:N] - yCH4[0:N - 1] * mfg[0:N - 1]) / dx[1:N] + Sch4[1:N]
 
     return drhobch4_dt
+
+
+def rhobco_rate(params, dx, mfg, rhob_g, rhob_co):
+    """
+    here
+    """
+    N = params['N']
+    ugin = params['ugin']
+
+    rhob_coin = 0
+    yCO = rhob_co / rhob_g
+
+    drhobco_dt = np.zeros(N)
+    drhobco_dt[0] = -(yCO[0] * mfg[0] - rhob_coin * ugin) / dx[0] + Sco[0]
+    drhobco_dt[1:N] = -(yCO[1:N] * mfg[1:N] - yCO[0:N - 1] * mfg[0:N - 1]) / dx[1:N] + Sco[1:N]
+
+    return drhobco_dt
+
+
+def rhobco2_rate(params, dx, mfg, rhob_g, rhob_co2):
+    """
+    here
+    """
+    N = params['N']
+    ugin = params['ugin']
+
+    rhob_co2in = 0
+    yCO2 = rhob_co2 / rhob_g
+
+    drhobco2_dt = np.zeros(N)
+    drhobco2_dt[0] = -(yCO2[0] * mfg[0] - rhob_co2in * ugin) / dx[0] + Sco2[0]
+    drhobco2_dt[1:N] = -(yCO2[1:N] * mfg[1:N] - yCO2[0:N - 1] * mfg[0:N - 1]) / dx[1:N] + Sco2[1:N]
+
+    return drhobco2_dt
+
+
+def rhobt_rate(params, dx, mfg, rhob_g, rhob_t):
+    """
+    here
+    """
+    N = params['N']
+    ugin = params['ugin']
+
+    rhob_tin = 0
+    yt = rhob_t / rhob_g
+
+    drhobt_dt = np.zeros(N)
+    drhobt_dt[0] = -(yt[0] * mfg[0] - rhob_tin * ugin) / dx[0] + St[0]
+    drhobt_dt[1:N] = -(yt[1:N] * mfg[1:N] - yt[0:N - 1] * mfg[0:N - 1]) / dx[1:N] + St[1:N]
+
+    return drhobt_dt
