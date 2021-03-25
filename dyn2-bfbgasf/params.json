@@ -9,7 +9,7 @@
 
     // Solver
     // tf   total time [s]
-    "tf": 100,
+    "tf": 1000,
 
     // Reactor dimensions
     // Db   internal diameter of the bed [m]

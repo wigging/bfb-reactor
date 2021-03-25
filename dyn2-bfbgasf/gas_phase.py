@@ -28,41 +28,36 @@ Bk = np.array([4.5918, 1.4028, 0.82511, 1.0208, 0.47093]) * 1e-4
 Ck = np.array([-6.4933, 3.3180, 1.9081, -2.2403, 4.9551]) * 1e-8
 
 
-def calc_dP(params, dx, ef, Mg, rhobg, Tg):
+def calc_props(params, dx, ef, mfg, Mg, rhob_g, Tg):
     """
-    Calculate pressure drop along the reactor.
+    Calculate various gas phase properties.
     """
     N = params['N']
     Np = params['Np']
     R = 8.314
 
-    # volume fraction of gas in bed and freeboard [-]
+    # Volume fraction of gas in bed and freeboard [-]
     afg = np.ones(N)
     afg[0:Np] = ef
 
-    # density of gas along reactor axis [kg/m³]
-    rhog = rhobg / afg
+    # Density of gas along reactor axis [kg/m³]
+    rhog = rhob_g / afg
 
-    # pressure along reactor axis [Pa]
+    # Pressure along reactor axis [Pa]
     P = R * rhog * Tg / Mg * 1e3
 
-    # pressure drop along the reactor
+    # Pressure drop along the reactor
     DP = -afg[0:N - 1] / dx[0:N - 1] * (P[1:N] - P[0:N - 1])
 
-    return P, DP
-
-
-def calc_rhobgav(N, rhobg):
-    """
-    Calculate the average gas mass concentration.
-    """
-
-    # average gas mass concentration [kg/m³]
+    # Average gas mass concentration [kg/m³]
     rhob_gav = np.zeros(N)
-    rhob_gav[0:N - 1] = 0.5 * (rhobg[0:N - 1] + rhobg[1:N])
-    rhob_gav[N - 1] = rhobg[N - 1]
+    rhob_gav[0:N - 1] = 0.5 * (rhob_g[0:N - 1] + rhob_g[1:N])
+    rhob_gav[N - 1] = rhob_g[N - 1]
 
-    return rhob_gav
+    # Gas velocity along the reactor [m/s]
+    ug = mfg / rhob_gav
+
+    return afg, DP, P, rhob_gav, rhog, ug
 
 
 def calc_mix_props(rhob_ch4, rhob_co, rhob_co2, rhob_g, rhob_h2, rhob_h2o, rhob_t, Tg):
@@ -159,36 +154,25 @@ def calc_fluidization(params, Mg, Tg):
     return Lp, ef, umf
 
 
-def mfg_terms(params, ds, dx, ef, Lp, mfg, mu, rhob_g, rhob_gav, rhob_s, rhos, sfc, Sg, v):
+def mfg_terms(params, afg, ds, dx, ef, Lp, mfg, mu, rhob_gav, rhob_s, rhog, rhos, sfc, Sg, ug, v):
     """
     Source terms for calculating gas mass flux.
     """
     Db = params['Db']
     Ls = params['Ls']
     N = params['N']
-    Np = params['Np']
+    # Np = params['Np']
     N1 = params['N1']
     dp = params['dp']
     ef0 = params['ef0']
     msdot = params['msdot'] / 3600
     phi = params['phi']
     rhop = params['rhop']
-
     g = 9.81
 
     epb = (1 - ef0) * Ls / Lp
 
-    # volume fraction of gas in bed and freeboard [-]
-    afg = np.ones(N)
-    afg[0:Np] = ef
-
-    # density of gas along reactor axis [kg/m³]
-    rhog = rhob_g / afg
-
-    # gas velocity along the reactor [m/s]
-    ug = mfg / rhob_gav
-
-    # drag coefficient
+    # Drag coefficient
     Re_dc = rhog * np.abs(-ug - v) * ds / mu
 
     Cd = (
@@ -196,7 +180,7 @@ def mfg_terms(params, ds, dx, ef, Lp, mfg, mu, rhob_g, rhob_gav, rhob_s, rhos, s
         + Re_dc * 73.69 / (Re_dc + 5.378 * np.exp(6.2122 * sfc)) * np.exp(-5.0748 * sfc)
     )
 
-    # bed cross-sectional area [m²]
+    # Bed cross-sectional area [m²]
     Ab = (np.pi / 4) * (Db**2)
 
     vin = max(v[N1 - 1], ug[N1 - 1])
@@ -233,7 +217,7 @@ def mfg_terms(params, ds, dx, ef, Lp, mfg, mu, rhob_g, rhob_gav, rhob_s, rhos, s
     return Cmf, Smgg, SmgV
 
 
-def mfg_rate(params, Cmf, dx, DP, mfg, rhob_gav, Smgg, SmgV):
+def mfg_rate(params, Cmf, dx, DP, mfg, rhob_gav, Smgg, SmgV, ug):
     """
     Gas mass flux rate ∂ṁfg/∂t.
     """
@@ -241,9 +225,6 @@ def mfg_rate(params, Cmf, dx, DP, mfg, rhob_gav, Smgg, SmgV):
     Np = params['Np']
     mfgin = params['mfgin']
     rhob_gin = params['rhob_gin']
-
-    # gas velocity along the reactor [m/s]
-    ug = mfg / rhob_gav
 
     # ∂ṁfg/∂t along height of the reactor
     dmfgdt = np.zeros(N)
@@ -268,7 +249,7 @@ def mfg_rate(params, Cmf, dx, DP, mfg, rhob_gav, Smgg, SmgV):
     return dmfgdt
 
 
-def tg_rate(params, cpg, ds, dx, ef, kg, Lp, mfg, mu, Pr, qgs, rhob_g, rhob_gav, rhob_s, rhos, Tg, Tp, Ts, Tw, v):
+def tg_rate(params, afg, cpg, ds, dx, kg, Lp, mu, Pr, qgs, rhob_g, rhob_s, rhog, rhos, Tg, Tp, Ts, Tw, ug, v):
     """
     Gas temperature rate ∂T𝗀/∂t.
     """
@@ -284,16 +265,6 @@ def tg_rate(params, cpg, ds, dx, ef, kg, Lp, mfg, mu, Pr, qgs, rhob_g, rhob_gav,
     kw = params['kw']
     phi = params['phi']
 
-    # volume fraction of gas in bed and freeboard [-]
-    afg = np.ones(N)
-    afg[0:Np] = ef
-
-    # density of gas along reactor axis [kg/m³]
-    rhog = rhob_g / afg
-
-    # gas velocity along the reactor [m/s]
-    ug = mfg / rhob_gav
-
     Re_dc = abs(rhog) * abs(-ug - v) * ds / mu
     Nud = 2 + 0.6 * Re_dc**0.5 * Pr**0.33
     hs = Nud * kg / ds
@@ -303,24 +274,19 @@ def tg_rate(params, cpg, ds, dx, ef, kg, Lp, mfg, mu, Pr, qgs, rhob_g, rhob_gav,
         (7 - 10 * afg + 5 * afg**2) * (1 + 0.7 * Rep**0.2 * Pr**0.33)
         + (1.33 - 2.4 * afg + 1.2 * afg**2) * Rep**0.7 * Pr**0.33
     )
+
     epb = (1 - ef0) * Ls / Lp
     hp = 6 * epb * kg * Nup / (phi * dp**2)
     Uhb = 1 / (4 / (np.pi * Dwi * hp) + np.pi * Dwi / (2 * kw) * np.log(Dwo / Dwi))
 
     qg = -6 * hs * rhob_s / (rhos * ds) * (Tg - Ts) - hp * (Tg - Tp) + 4 / Db * Uhb * (Tw - Tg)
 
-    # - - -
-
     Cg = rhob_g * cpg
-
-    # - - -
 
     ReD = abs(rhog) * np.abs(ug) * Db / mu
     Nuf = 0.023 * ReD**0.8 * Pr**0.4
     hf = Nuf * kg / Db
     Uhf = 1 / (1 / hf + np.pi * Dwi / (2 * kw) * np.log(Dwo / Dwi))
-
-    # - - -
 
     # ∂T𝗀/∂t along height of the reactor [K]
     dtgdt = np.zeros(N)

@@ -57,7 +57,7 @@ def calc_props(params, rhob_b, rhob_c, rhob_ca, Ts):
     return Cs, Xcr, cpb, cpc, cps, ds, rhob_s, rhos, sfc
 
 
-def calc_hps(params, cps, ds, ef, Lp, mfg, mu, rhob_g, rhob_gav, rhob_s, rhos, v):
+def calc_hps(params, cps, ds, ef, Lp, mu, rhob_s, rhog, rhos, ug, v):
     """
     Calculate particle-particle heat transfer coefficient.
     """
@@ -65,8 +65,6 @@ def calc_hps(params, cps, ds, ef, Lp, mfg, mu, rhob_g, rhob_gav, rhob_s, rhos, v
     Gp = params['Gp']
     Gs = params['Gs']
     Ls = params['Ls']
-    N = params['N']
-    Np = params['Np']
     dp = params['dp']
     cpp = params['cpp']
     e = params['e']
@@ -77,16 +75,6 @@ def calc_hps(params, cps, ds, ef, Lp, mfg, mu, rhob_g, rhob_gav, rhob_s, rhos, v
     ks = params['ks']
     rhop = params['rhop']
     g = 9.81
-
-    # volume fraction of gas in bed and freeboard [-]
-    afg = np.ones(N)
-    afg[0:Np] = ef
-
-    # density of gas along reactor axis [kg/m³]
-    rhog = rhob_g / afg
-
-    # gas velocity along the reactor [m/s]
-    ug = mfg / rhob_gav
 
     epb = (1 - ef0) * Ls / Lp
     Yb = 1 / (1 + epb * rhos / rhob_s)
@@ -115,25 +103,13 @@ def calc_hps(params, cps, ds, ef, Lp, mfg, mu, rhob_g, rhob_gav, rhob_s, rhos, v
     return hps
 
 
-def calc_qs(params, ds, ef, hps, kg, mfg, mu, Pr, rhob_g, rhob_gav, rhob_s, rhos, Tg, Tp, Ts, v):
+def calc_qs(params, ds, hps, kg, mu, Pr, rhob_s, rhog, rhos, Tg, Tp, Ts, ug, v):
     """
     Calculate heat transfer due to gas flow and inert bed material. This
     method must be called after the `_calc_hps()` method.
     """
-    N = params['N']
-    Np = params['Np']
     es = params['es']
     sc = 5.67e-8
-
-    # volume fraction of gas in bed and freeboard [-]
-    afg = np.ones(N)
-    afg[0:Np] = ef
-
-    # density of gas along reactor axis [kg/m³]
-    rhog = rhob_g / afg
-
-    # gas velocity along the reactor [m/s]
-    ug = mfg / rhob_gav
 
     Re_dc = abs(rhog) * abs(-ug - v) * ds / mu
     Nud = 2 + 0.6 * Re_dc**0.5 * Pr**0.33
@@ -184,21 +160,15 @@ def ts_rate(params, Cs, dx, qs, qss, Ts, v):
     return dtsdt
 
 
-def rhobb_rate(params, dx, mfg, rhob_b, rhob_gav, Sb, v):
+def rhobb_rate(params, dx, rhob_b, Sb, ug, v):
     """
     Biomass mass concentration rate ∂ρ̅𝖻/∂t.
     """
-    Db = params['Db']
+    Ab = params['Ab']
     N = params['N']
     Np = params['Np']
     N1 = params['N1']
     ms_dot = params['msdot'] / 3600
-
-    # bed cross-sectional area [m²]
-    Ab = (np.pi / 4) * (Db**2)
-
-    # gas velocity along the reactor [m/s]
-    ug = mfg / rhob_gav
 
     # ∂ρ̅𝖻/∂t along height of the reactor
     drhobb_dt = np.zeros(N)
@@ -217,7 +187,7 @@ def rhobb_rate(params, dx, mfg, rhob_b, rhob_gav, Sb, v):
     return drhobb_dt
 
 
-def v_rate(params, ds, dx, ef, Lp, mfg, mu, rhob_g, rhob_gav, rhob_s, rhos, Sb, Sc, umf, v, x):
+def v_rate(params, afg, ds, dx, ef, Lp, mu, rhob_s, rhog, rhos, Sb, Sc, ug, umf, v, x):
     """
     Solid fuel velocity rate ∂v/∂t.
     """
@@ -232,19 +202,8 @@ def v_rate(params, ds, dx, ef, Lp, mfg, mu, rhob_g, rhob_gav, rhob_s, rhos, Sb, 
     lb = params['lb']
     rhop = params['rhop']
     ugin = params['ugin']
-
     fw = 0.25
     g = 9.81
-
-    # volume fraction of gas in bed and freeboard [-]
-    afg = np.ones(N)
-    afg[0:Np] = ef
-
-    # density of gas along reactor axis [kg/m³]
-    rhog = rhob_g / afg
-
-    # gas velocity along the reactor [m/s]
-    ug = mfg / rhob_gav
 
     Ugb = np.mean(np.append(afg[0:Np] * ug[0:Np], ugin))
     Ugb = max(ugin, Ugb)
@@ -295,7 +254,7 @@ def v_rate(params, ds, dx, ef, Lp, mfg, mu, rhob_g, rhob_gav, rhob_s, rhos, Sb, 
     return dvdt
 
 
-def tp_rate(params, ds, ef, hps, kg, Lp, mfg, mu, Pr, rhob_g, rhob_gav, rhob_s, rhos, Tg, Tp, Ts, Tw):
+def tp_rate(params, afg, ds, hps, kg, Lp, mu, Pr, rhob_s, rhog, rhos, Tg, Tp, Ts, Tw, ug):
     """
     Bed particle temperature rate ∂Tp/∂t.
     """
@@ -312,12 +271,6 @@ def tp_rate(params, ds, ef, hps, kg, Lp, mfg, mu, Pr, rhob_g, rhob_gav, rhob_s, 
     phi = params['phi']
     rhop = params['rhop']
     sc = 5.67e-8
-
-    afg = np.ones(N)
-    afg[0:Np] = ef
-    rhog = rhob_g / afg
-
-    ug = mfg / rhob_gav
 
     epb = (1 - ef0) * Ls / Lp
 
@@ -371,7 +324,7 @@ def rhobca_rate(params, dx, rhob_ca, Sca, v):
     return drhobca_dt
 
 
-def tw_rate(params, ef, kg, Lp, mfg, mu, Pr, rhob_g, rhob_gav, Tg, Tp, Tw):
+def tw_rate(params, afg, kg, Lp, mu, Pr, rhog, Tg, Tp, Tw, ug):
     """
     Calculate wall temperature rate.
     """
@@ -392,14 +345,7 @@ def tw_rate(params, ef, kg, Lp, mfg, mu, Pr, rhob_g, rhob_gav, Tg, Tp, Tw):
     kw = params['kw']
     phi = params['phi']
     rhow = params['rhow']
-
     sc = 5.67e-8
-
-    afg = np.ones(N)
-    afg[0:Np] = ef
-    rhog = rhob_g / afg
-
-    ug = mfg / rhob_gav
 
     # Calculations
     Rep = abs(rhog) * abs(ug) * dp / mu
