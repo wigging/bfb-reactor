@@ -11,6 +11,7 @@ def get_params(json_file):
     R = 8.314
     g = 9.81
 
+    # Read JSON file and store parameters in a dictionary
     json_str = ''
 
     with open(json_file) as jfile:
@@ -20,44 +21,65 @@ def get_params(json_file):
 
     json_dict = json.loads(json_str)
 
+    # Get parameters from JSON dictionary
+    Db = json_dict['Db']
+    Ls = json_dict['Ls']
+    Mgin = json_dict['Mgin']
+    Pa = json_dict['Pa']
+    SB = json_dict['SB']
+    Tgin = json_dict['Tgin']
+
+    ef0 = json_dict['ef0']
+    emf = json_dict['emf']
+    rhob = json_dict['rhob']
+    rhoc = json_dict['rhoc']
+    rhop = json_dict['rhop']
+    wa = json_dict['wa']
+    wc = json_dict['wc']
+
+    # Biomass shrinkage factor [-]
+    psi = rhoc / (rhob * (wc + wa))
+
     # total grid points (N) and grid points to bed top (Np)
     N = json_dict['N1'] + json_dict['N2'] + json_dict['N3']
     Np = json_dict['N1'] + json_dict['N2']
 
-    # bed cross-sectional area [m²]
-    Db = json_dict['Db']
+    # Bed cross-sectional area [m²]
     Ab = (np.pi / 4) * (Db**2)
 
-    # inlet gas mass flux [kg/(s⋅m²)]
-    SB = json_dict['SB']
+    # Inlet gas mass flux [kg/(s⋅m²)]
     msdot = json_dict['msdot'] / 3600
     mfgin = SB * msdot / Ab
 
-    # inlet gas velocity [m/s]
-    Mgin = json_dict['Mgin']
-    Tgin = json_dict['Tgin']
+    # Inlet gas velocity [m/s]
     rhogin = json_dict['P'] * Mgin / (R * Tgin) * 1e-3
     ugin = mfgin / rhogin
 
-    # bulk gas density at inlet [kg/m³]
-    Ls = json_dict['Ls']
-    Pa = json_dict['Pa']
-    ef0 = json_dict['ef0']
-    rhop = json_dict['rhop']
+    # Bulk gas density at inlet [kg/m³]
     Pin = (1 - ef0) * rhop * g * Ls + Pa
     rhog_in = Pin * Mgin / (R * Tgin) * 1e-3
     rhob_gin = rhog_in
 
-    # reactor internal diameter, same as Db [m]
+    # here
+    Lmf = (1 - ef0) / (1 - emf) * Ls
+
+    # here
+    Pin = (1 - ef0) * rhop * g * Ls + Pa
+
+    # Reactor internal diameter, same as Db [m]
     Dwo = json_dict['Dwo']
     xw = json_dict['xw']
     Dwi = Dwo - 2 * xw
 
     # add calculated parameters to JSON dictionary
+    json_dict['Ab'] = Ab
     json_dict['Dwi'] = Dwi
+    json_dict['Lmf'] = Lmf
     json_dict['N'] = N
     json_dict['Np'] = Np
+    json_dict['Pin'] = Pin
     json_dict['mfgin'] = mfgin
+    json_dict['psi'] = psi
     json_dict['rhob_gin'] = rhob_gin
     json_dict['ugin'] = ugin
 

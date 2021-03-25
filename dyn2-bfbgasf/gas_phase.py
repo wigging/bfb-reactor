@@ -1,28 +1,5 @@
 import numpy as np
 
-# >>>
-# FIXME: these variables should be calculated, assumes that N = 100
-Sg = np.full(100, 5.8362e-24)
-Sh2 = np.full(100, 1.4633e-29)
-Sch4 = np.full(100, 4.9883e-25)
-Sco = np.full(100, 4.154e-24)
-Sco2 = np.full(100, 7.3207e-25)
-St = np.full(100, 9.8272e-26)
-Tp = np.zeros(100)
-Tp[:75] = 1100
-Tw = np.full(100, 1100)
-ef = 0.48572
-qgs = np.zeros(100)
-rhob_h2 = np.full(100, 1e-8)
-rhob_ch4 = np.full(100, 1e-8)
-rhob_co = np.full(100, 1e-8)
-rhob_co2 = np.full(100, 1e-8)
-rhob_t = np.full(100, 1e-8)
-rhob_s = np.full(100, 1e-12)
-rhos = np.full(100, 423)
-# <<<
-
-
 # Molecular weight [g/mol]
 M_CH4 = 16
 M_CO = 28
@@ -31,27 +8,27 @@ M_H2 = 2
 M_H2O = 18
 
 # Gas viscosity coefficients (see Table S1 in Agu 2019)
-# coefficients listed in order of CH4, CO, CO2, H2, H2O
-Amu = np.array([3.844, 23.811, 11.811, 27.758, -36.826])
-Bmu = np.array([4.0112, 5.3944, 4.9838, 2.120, 4.290]) * 1e-1
-Cmu = np.array([-1.4303, -1.5411, -1.0851, -0.3280, -0.1620]) * 1e-4
+# coefficients listed in order of H2, CH4, CO, CO2, H2O
+Amu = np.array([27.758, 3.844, 23.811, 11.811, -36.826])
+Bmu = np.array([2.120, 4.0112, 5.3944, 4.9838, 4.290]) * 1e-1
+Cmu = np.array([-0.3280, -1.4303, -1.5411, -1.0851, -0.1620]) * 1e-4
 
 # Gas specific heat capacity coefficients (see Table S2 in Agu 2019)
-# coefficients listed in order of CH4, CO, CO2, H2, H2O
-Acp = np.array([34.942, 29.556, 27.437, 25.399, 33.933])
-Bcp = np.array([-39.957, -6.5807, 42.315, 20.178, -8.4186]) * 1e-3
-Ccp = np.array([19.184, 2.0130, -1.9555, -3.8549, 2.9906]) * 1e-5
-Dcp = np.array([-15.303, -1.2227, 0.39968, 3.188, -1.7825]) * 1e-8
-Ecp = np.array([39.321, 2.2617, -0.29872, -8.7585, 3.6934]) * 1e-12
+# coefficients listed in order of H2, CH4, CO, CO2, H2O
+Acp = np.array([25.399, 34.942, 29.556, 27.437, 33.933])
+Bcp = np.array([20.178, -39.957, -6.5807, 42.315, -8.4186]) * 1e-3
+Ccp = np.array([-3.8549, 19.184, 2.0130, -1.9555, 2.9906]) * 1e-5
+Dcp = np.array([3.188, -15.303, -1.2227, 0.39968, -1.7825]) * 1e-8
+Ecp = np.array([-8.7585, 39.321, 2.2617, -0.29872, 3.6934]) * 1e-12
 
 # Gas thermal conductivity coefficients (see Table S3 in Agu 2019)
-# coefficients listed in order of CH4, CO, CO2, H2, H2O
-Ak = np.array([-0.935, 0.158, -1.200, 3.951, 0.053]) * 1e-2
-Bk = np.array([1.4028, 0.82511, 1.0208, 4.5918, 0.47093]) * 1e-4
-Ck = np.array([3.3180, 1.9081, -2.2403, -6.4933, 4.9551]) * 1e-8
+# coefficients listed in order of H2, CH4, CO, CO2, H2O
+Ak = np.array([3.951, -0.935, 0.158, -1.200, 0.053]) * 1e-2
+Bk = np.array([4.5918, 1.4028, 0.82511, 1.0208, 0.47093]) * 1e-4
+Ck = np.array([-6.4933, 3.3180, 1.9081, -2.2403, 4.9551]) * 1e-8
 
 
-def calc_dP(params, dx, Mg, rhobg, Tg):
+def calc_dP(params, dx, ef, Mg, rhobg, Tg):
     """
     Calculate pressure drop along the reactor.
     """
@@ -72,7 +49,7 @@ def calc_dP(params, dx, Mg, rhobg, Tg):
     # pressure drop along the reactor
     DP = -afg[0:N - 1] / dx[0:N - 1] * (P[1:N] - P[0:N - 1])
 
-    return DP
+    return P, DP
 
 
 def calc_rhobgav(N, rhobg):
@@ -88,7 +65,7 @@ def calc_rhobgav(N, rhobg):
     return rhob_gav
 
 
-def calc_mix_props(rhobg, rhob_h2o, Tg):
+def calc_mix_props(rhob_ch4, rhob_co, rhob_co2, rhob_g, rhob_h2, rhob_h2o, rhob_t, Tg):
     """
     Calculate gas mixture properties along the reactor.
     """
@@ -98,7 +75,7 @@ def calc_mix_props(rhobg, rhob_h2o, Tg):
 
     # mass fractions
     rhobx = np.array([rhob_ch4, rhob_co, rhob_co2, rhob_h2, rhob_h2o])
-    yx = rhobx / rhobg
+    yx = rhobx / rhob_g
 
     # mole fractions
     sumYM = np.sum(yx, axis=0) / (M_CH4 + M_CO + M_CO2 + M_H2 + M_H2O)
@@ -121,19 +98,73 @@ def calc_mix_props(rhobg, rhob_h2o, Tg):
 
     cpt = -100 + 4.40 * Tg - 1.57e-3 * Tg**2
     cpgg = cpgm / Mg * 1e3
-    yt = rhob_t / rhobg
+    yt = rhob_t / rhob_g
     cpg = yt * cpt + (1 - yt) * cpgg
     Pr = cpg * mu / kg
 
     return Mg, Pr, cpg, cpgm, kg, mu, xg
 
 
-def mfg_terms(params, ds, dx, mfg, mu, rhobg, rhob_gav, sfc, v):
+def calc_fluidization(params, Mg, Tg):
+    """
+    Calculate fluidization properties. This method must be called after
+    the `_calc_mix_props()` method.
+    """
+    Ab = params['Ab']
+    Db = params['Db']
+    Lmf = params['Lmf']
+    Lsi = params['Lsi']
+    Np = params['Np']
+    Pin = params['Pin']
+    SB = params['SB']
+    Tgin = params['Tgin']
+    dp = params['dp']
+    emf = params['emf']
+    ms_dot = params['msdot'] / 3600
+    rhop = params['rhop']
+    R = 8.314
+    g = 9.81
+
+    Tgm = np.mean(np.append(Tg[0:Np], Tgin))
+    Tgi = max(Tgin, Tgm)
+    muin = (Amu[4] + Bmu[4] * Tgi + Cmu[4] * Tgi**2) * 1e-7
+
+    Mgi = np.mean(Mg[0:Np])
+    rhogi = Pin * Mgi / (R * Tgi) * 1e-3
+
+    Ar = dp**3 * rhogi * (rhop - rhogi) * g / muin**2
+    Rem = -33.67 + (33.67**2 + 0.0408 * Ar)**0.5
+    umf = Rem * muin / (rhogi * dp)
+    Umsr = (np.exp(-0.5405 * Lsi / Db) * (4.294e3 / Ar + 1.1) + 3.676e2 * Ar**(-1.5) + 1)
+
+    mfgin = SB * ms_dot / Ab
+    Ugin = mfgin / rhogi
+
+    Drbs = 1
+    Rrb = (1 - 0.103 * (Umsr * umf - umf)**(-0.362) * Drbs)**(-1)
+    Rrs = (1 - 0.305 * (Ugin - umf)**(-0.362) * Db**0.48)**(-1)
+    Dbr = 5.64e-4 / (Db * Lmf) * (1 + 27.2 * (Ugin - umf))**(1 / 3) * ((1 + 6.84 * Lmf)**2.21 - 1)
+
+    if Dbr < Drbs:
+        Re = (1 - 0.103 * (Ugin - umf)**(-0.362) * Dbr)**(-1)
+    else:
+        Re = Rrb * Rrs
+
+    De = Re - 1
+    if np.isnan(De) or De <= 0:
+        De = 0.05
+
+    ef = 1 - (1 - emf) / (De + 1)
+    Lp = (De + 1) * Lmf
+
+    return Lp, ef, umf
+
+
+def mfg_terms(params, ds, dx, ef, Lp, mfg, mu, rhob_g, rhob_gav, rhob_s, rhos, sfc, Sg, v):
     """
     Source terms for calculating gas mass flux.
     """
     Db = params['Db']
-    Lp = params['Lp']
     Ls = params['Ls']
     N = params['N']
     Np = params['Np']
@@ -153,7 +184,7 @@ def mfg_terms(params, ds, dx, mfg, mu, rhobg, rhob_gav, sfc, v):
     afg[0:Np] = ef
 
     # density of gas along reactor axis [kg/m³]
-    rhog = rhobg / afg
+    rhog = rhob_g / afg
 
     # gas velocity along the reactor [m/s]
     ug = mfg / rhob_gav
@@ -238,14 +269,13 @@ def mfg_rate(params, Cmf, dx, DP, mfg, rhob_gav, Smgg, SmgV):
     return dmfgdt
 
 
-def tg_rate(params, cpg, ds, dx, kg, mfg, mu, Pr, rhobg, rhob_gav, Tg, Ts, v):
+def tg_rate(params, cpg, ds, dx, ef, kg, Lp, mfg, mu, Pr, qgs, rhob_g, rhob_gav, rhob_s, rhos, Tg, Tp, Ts, Tw, v):
     """
     Gas temperature rate ∂T𝗀/∂t.
     """
     Db = params['Db']
     Dwi = params['Dwi']
     Dwo = params['Dwo']
-    Lp = params['Lp']
     Ls = params['Ls']
     N = params['N']
     Np = params['Np']
@@ -260,7 +290,7 @@ def tg_rate(params, cpg, ds, dx, kg, mfg, mu, Pr, rhobg, rhob_gav, Tg, Ts, v):
     afg[0:Np] = ef
 
     # density of gas along reactor axis [kg/m³]
-    rhog = rhobg / afg
+    rhog = rhob_g / afg
 
     # gas velocity along the reactor [m/s]
     ug = mfg / rhob_gav
@@ -282,7 +312,7 @@ def tg_rate(params, cpg, ds, dx, kg, mfg, mu, Pr, rhobg, rhob_gav, Tg, Ts, v):
 
     # - - -
 
-    Cg = rhobg * cpg
+    Cg = rhob_g * cpg
 
     # - - -
 
@@ -308,7 +338,7 @@ def tg_rate(params, cpg, ds, dx, kg, mfg, mu, Pr, rhobg, rhob_gav, Tg, Ts, v):
     return dtgdt
 
 
-def rhobg_rate(params, dx, mfg):
+def rhobg_rate(params, dx, mfg, Sg):
     """
     Gas bulk density rate ∂ρ𝗀/∂t.
     """
@@ -342,7 +372,7 @@ def rhobh2o_rate(params, dx, mfg, rhob_g, rhob_h2o, Sh2o):
     return drhobh2o_dt
 
 
-def rhobh2_rate(params, dx, mfg, rhob_g, rhob_h2):
+def rhobh2_rate(params, dx, mfg, rhob_g, rhob_h2, Sh2):
     """
     here
     """
@@ -359,7 +389,7 @@ def rhobh2_rate(params, dx, mfg, rhob_g, rhob_h2):
     return drhobh2_dt
 
 
-def rhobch4_rate(params, dx, mfg, rhob_g, rhob_ch4):
+def rhobch4_rate(params, dx, mfg, rhob_g, rhob_ch4, Sch4):
     """
     here
     """
@@ -376,7 +406,7 @@ def rhobch4_rate(params, dx, mfg, rhob_g, rhob_ch4):
     return drhobch4_dt
 
 
-def rhobco_rate(params, dx, mfg, rhob_g, rhob_co):
+def rhobco_rate(params, dx, mfg, rhob_g, rhob_co, Sco):
     """
     here
     """
@@ -393,7 +423,7 @@ def rhobco_rate(params, dx, mfg, rhob_g, rhob_co):
     return drhobco_dt
 
 
-def rhobco2_rate(params, dx, mfg, rhob_g, rhob_co2):
+def rhobco2_rate(params, dx, mfg, rhob_g, rhob_co2, Sco2):
     """
     here
     """
@@ -410,7 +440,7 @@ def rhobco2_rate(params, dx, mfg, rhob_g, rhob_co2):
     return drhobco2_dt
 
 
-def rhobt_rate(params, dx, mfg, rhob_g, rhob_t):
+def rhobt_rate(params, dx, mfg, rhob_g, rhob_t, St):
     """
     here
     """

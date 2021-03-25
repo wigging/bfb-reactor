@@ -1,12 +1,11 @@
 import numpy as np
 
 
-def grid(params):
+def grid(params, Lp):
     """
     Calculate distance steps ∆x and one-dimensional grid points.
     """
     L = params['L']
-    Lp = params['Lp']
     Ls = params['Ls']
     N1 = params['N1']
     N2 = params['N2']

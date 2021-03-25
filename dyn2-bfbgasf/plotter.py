@@ -14,7 +14,7 @@ def plot_ts(results):
     Ts = results['Ts']
 
     # Ts along height of the reactor at final time
-    Tsx = np.concatenate(([300], Ts[:, -1], [Ts[-1, -1]]))
+    Tsx = np.concatenate(([Ts[0, -1]], Ts[:, -1], [Ts[-1, -1]]))
 
     _, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, sharey=True, tight_layout=True)
 
@@ -37,7 +37,7 @@ def plot_tg(results):
     Tg = results['Tg']
 
     # Tg along height of the reactor at final time
-    Tgx = np.concatenate(([1100], Tg[:, -1], [Tg[-1, -1]]))
+    Tgx = np.concatenate(([Tg[0, -1]], Tg[:, -1], [Tg[-1, -1]]))
 
     _, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, sharey=True, tight_layout=True)
 
@@ -60,7 +60,7 @@ def plot_rhobb(results):
     rhob_b = results['rhob_b']
 
     # rhob_b along height of the reactor at final time
-    rhob_bx = np.concatenate(([1100], rhob_b[:, -1], [rhob_b[-1, -1]]))
+    rhob_bx = np.concatenate(([rhob_b[0, -1]], rhob_b[:, -1], [rhob_b[-1, -1]]))
 
     _, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, sharey=True, tight_layout=True)
 
@@ -83,7 +83,7 @@ def plot_mfg(results):
     mfg = results['mfg']
 
     # mfg along reactor at final time
-    mfgx = np.concatenate(([0.2], mfg[:, -1], [mfg[-1, -1]]))
+    mfgx = np.concatenate(([mfg[0, -1]], mfg[:, -1], [mfg[-1, -1]]))
 
     _, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, sharey=True, tight_layout=True)
 

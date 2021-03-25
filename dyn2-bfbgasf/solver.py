@@ -13,7 +13,7 @@ def solver(params):
     Np = params['Np']
 
     # one-dimensional grid steps and points
-    dx, x = grid(params)
+    dx, x = grid(params, Lp=0.2347)
 
     # initial conditions
     Ts0 = np.full(N, 300)
