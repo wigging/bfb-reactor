@@ -25,7 +25,7 @@ def solver(params):
     rhobh2o0 = np.full(N, 0.15)
     Tp0 = np.zeros(N)
     Tp0[0:Np] = 1100
-    rhobc0 = np.full(N, 1e-12)
+    rhobc0 = np.full(N, 0)
     rhobh20 = np.full(N, 1e-12)
     rhobch40 = np.full(N, 1e-12)
     rhobco0 = np.full(N, 1e-12)
