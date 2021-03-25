@@ -18,20 +18,20 @@ def solver(params):
     # initial conditions
     Ts0 = np.full(N, 300)
     Tg0 = np.full(N, 1100)
-    rhobb0 = np.full(N, 1e-8)
+    rhobb0 = np.full(N, 1e-12)
     v0 = np.full(N, params['ugin'])
     mfg0 = np.full(N, 0.2)
     rhobg0 = np.full(N, 0.15)
     rhobh2o0 = np.full(N, 0.15)
     Tp0 = np.zeros(N)
     Tp0[0:Np] = 1100
-    rhobc0 = np.full(N, 1e-8)
-    rhobh20 = np.full(N, 1e-8)
-    rhobch40 = np.full(N, 1e-8)
-    rhobco0 = np.full(N, 1e-8)
-    rhobco20 = np.full(N, 1e-8)
-    rhobt0 = np.full(N, 1e-8)
-    rhobca0 = np.full(N, 1e-8)
+    rhobc0 = np.full(N, 1e-12)
+    rhobh20 = np.full(N, 1e-12)
+    rhobch40 = np.full(N, 1e-12)
+    rhobco0 = np.full(N, 1e-12)
+    rhobco20 = np.full(N, 1e-12)
+    rhobt0 = np.full(N, 1e-12)
+    rhobca0 = np.full(N, 1e-12)
     Tw0 = np.full(N, 1100)
 
     # solve system of ODEs using SciPy ODE solver

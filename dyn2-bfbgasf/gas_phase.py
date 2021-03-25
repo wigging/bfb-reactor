@@ -70,27 +70,26 @@ def calc_mix_props(rhob_ch4, rhob_co, rhob_co2, rhob_g, rhob_h2, rhob_h2o, rhob_
     Calculate gas mixture properties along the reactor.
     """
 
-    # molecular weights
-    M = np.array([[M_CH4], [M_CO], [M_CO2], [M_H2], [M_H2O]])
+    # Molecular weights
+    M = np.array([[M_H2], [M_CH4], [M_CO], [M_CO2], [M_H2O]])
 
-    # mass fractions
-    rhobx = np.array([rhob_ch4, rhob_co, rhob_co2, rhob_h2, rhob_h2o])
+    # Mass fractions
+    rhobx = np.array([rhob_h2, rhob_ch4, rhob_co, rhob_co2, rhob_h2o])
     yx = rhobx / rhob_g
 
-    # mole fractions
-    sumYM = np.sum(yx, axis=0) / (M_CH4 + M_CO + M_CO2 + M_H2 + M_H2O)
-    xg = (yx / M) / sumYM
+    # Mole fractions
+    xg = (yx / M) / sum(yx / M)
 
-    # viscosity
+    # Viscosity
     mux = (Amu[:, None] + Bmu[:, None] * Tg + Cmu[:, None] * Tg**2) * 1e-7
 
-    # thermal conductivity
+    # Thermal conductivity
     kx = Ak[:, None] + Bk[:, None] * Tg + Ck[:, None] * Tg**2
 
-    # heat capacity
+    # Heat capacity
     cpx = Acp[:, None] + Bcp[:, None] * Tg + Ccp[:, None] * Tg**2 + Dcp[:, None] * Tg**3 + Ecp[:, None] * Tg**4
 
-    # calculate mixture properties
+    # Calculate mixture properties
     Mg = sum(xg * M)
     mu = sum(xg * mux * M**0.5) / sum(xg * M**0.5)
     cpgm = sum(xg * cpx)
