@@ -12,7 +12,7 @@ def plot_temp(Tg, Ts, x, t):
     Tsx = np.concatenate(([Ts[0, -1]], Ts[:, -1], [Ts[-1, -1]]))
     Tgx = np.concatenate(([Tg[0, -1]], Tg[:, -1], [Tg[-1, -1]]))
 
-    _, ax = plt.subplots()
+    _, ax = plt.subplots(tight_layout=True)
     ax.plot(x[0:75], Tsx[0:75] - 273)
     ax.plot(x, Tgx - 273)
     ax.set_xlabel('Height [m]')
@@ -31,13 +31,35 @@ def plot_bio_char(rhob_b, rhob_c, x):
     rhob_bx = np.concatenate(([rhob_b[0, -1]], rhob_b[:, -1], [rhob_b[-1, -1]]))
     rhob_cx = np.concatenate(([rhob_c[0, -1]], rhob_c[:, -1], [rhob_c[-1, -1]]))
 
-    _, ax = plt.subplots()
+    _, ax = plt.subplots(tight_layout=True)
     ax.plot(x[0:75], rhob_bx[0:75])
     ax.plot(x[0:75], rhob_cx[0:75])
     ax.set_xlabel('Height [m]')
     ax.set_ylabel('Concentration [kg/m³]')
     _style_axis(ax)
 
+
+def plot_mfg(mfg, x):
+    mfgx = np.concatenate(([mfg[0, -1]], mfg[:, -1], [mfg[-1, -1]]))
+
+    _, ax = plt.subplots(tight_layout=True)
+    ax.plot(x, mfgx)
+    ax.set_xlabel('Height [m]')
+    ax.set_ylabel('Gas flux [kg/(s⋅m²)]')
+    _style_axis(ax)
+
+
+def plot_h2(rhob_h2, t):
+    _, ax = plt.subplots(tight_layout=True)
+    ax.plot(t, rhob_h2[0], label='bottom')
+    ax.plot(t, rhob_h2[-1], label='top')
+    ax.set_xlabel('t [s]')
+    ax.set_ylabel('H₂ concentration [kg/m³]')
+    ax.legend()
+    _style_axis(ax)
+
+
+# v v v    outdated plots below here    v v v
 
 def plot_ts(results):
     x = results['x']
@@ -104,29 +126,6 @@ def plot_rhobb(results):
     _style_axis(ax1)
 
     ax2.plot(x, rhob_bx)
-    ax2.set_xlabel('x [m]')
-    _style_axis(ax2)
-
-
-def plot_mfg(results):
-    x = results['x']
-    t = results['t']
-    mfg = results['mfg']
-
-    # mfg along reactor at final time
-    mfgx = np.concatenate(([mfg[0, -1]], mfg[:, -1], [mfg[-1, -1]]))
-
-    _, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, sharey=True, tight_layout=True)
-
-    ax1.plot(t, mfg[0], label='btm')
-    ax1.plot(t, mfg[50], label='mid')
-    ax1.plot(t, mfg[-1], label='top')
-    ax1.set_xlabel('t [s]')
-    ax1.set_ylabel('mfg [kg/(s⋅m²)]')
-    ax1.legend()
-    _style_axis(ax1)
-
-    ax2.plot(x, mfgx)
     ax2.set_xlabel('x [m]')
     _style_axis(ax2)
 

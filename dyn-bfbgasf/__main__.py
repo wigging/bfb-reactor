@@ -60,11 +60,15 @@ def main():
         Ts = np.load(results_dir / 'Ts.npy')
         Tg = np.load(results_dir / 'Tg.npy')
         rhob_b = np.load(results_dir / 'rhob_b.npy')
+        mfg = np.load(results_dir / 'mfg.npy')
         rhob_c = np.load(results_dir / 'rhob_c.npy')
+        rhob_h2 = np.load(results_dir / 'rhob_h2.npy')
 
         # Plot results
         plotter.plot_temp(Tg, Ts, x, t)
         plotter.plot_bio_char(rhob_b, rhob_c, x)
+        plotter.plot_mfg(mfg, x)
+        plotter.plot_h2(rhob_h2, t)
         plotter.show_plots()
 
     # np.save('results/x', results['x'])
@@ -85,13 +89,6 @@ def main():
     # np.save('results/rhob_t', results['rhob_t'])
     # np.save('results/rhob_ca', results['rhob_ca'])
     # np.save('results/Tw', results['Tw'])
-
-    # Plot results
-    # plotter.plot_ts(results)
-    # plotter.plot_tg(results)
-    # plotter.plot_rhobb(results)
-    # plotter.plot_mfg(results)
-    # plotter.show_plots()
 
 
 if __name__ == '__main__':

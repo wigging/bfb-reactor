@@ -45,11 +45,11 @@ def solver(params):
     # Print solver information
     print(f'\n{" Solver Info ":-^60}\n')
     print(
-        f'message {sol.message}'
-        f'success {sol.success}'
-        f'nfev    {sol.nfev}'
-        f'njev    {sol.njev}'
-        f'nlu     {sol.nlu}'
+        f'message {sol.message}\n'
+        f'success {sol.success}\n'
+        f'nfev    {sol.nfev}\n'
+        f'njev    {sol.njev}\n'
+        f'nlu     {sol.nlu}\n'
     )
 
     # Print results information
