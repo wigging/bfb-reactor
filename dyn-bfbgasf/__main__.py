@@ -56,13 +56,14 @@ def main():
 
         # Load parameters from saved binary NumPy files
         x = np.load(results_dir / 'x.npy')
+        t = np.load(results_dir / 't.npy')
         Ts = np.load(results_dir / 'Ts.npy')
         Tg = np.load(results_dir / 'Tg.npy')
         rhob_b = np.load(results_dir / 'rhob_b.npy')
         rhob_c = np.load(results_dir / 'rhob_c.npy')
 
         # Plot results
-        plotter.plot_temp(Tg, Ts, x)
+        plotter.plot_temp(Tg, Ts, x, t)
         plotter.plot_bio_char(rhob_b, rhob_c, x)
         plotter.show_plots()
 

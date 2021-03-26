@@ -1,129 +1,87 @@
+import json
 import numpy as np
 
 
-class Parameters:
+def get_params(json_file):
+    """
+    Read JSON file containing the model parameters. Commented lines that begin
+    with // are ignored. JSON data is returned as a dictionary. Calculate
+    inlet parameters and add them to the dictionary.
+    """
+    R = 8.314
+    g = 9.81
 
-    def __init__(self, params):
+    # Read JSON file and store parameters in a dictionary
+    json_str = ''
 
-        self.Db = params['Db']
-        self.Dwo = params['Dwo']
-        self.Gp = params['Gp']
-        self.Gs = params['Gs']
-        self.L = params['L']
-        self.Lb = params['Lb']
-        self.Lu = params['Lu']
-        self.Lsi = params['Lsi']
-        self.Mgin = params['Mgin']
-        self.N1 = params['N1']
-        self.N2 = params['N2']
-        self.N3 = params['N3']
-        self.P = params['P']
-        self.Pa = params['Pa']
-        self.SB = params['SB']
-        self.Tg = params['Tg']
-        self.Tp = params['Tp']
-        self.Ts = params['Ts']
-        self.Tam = params['Tam']
-        self.Tgin = params['Tgin']
-        self.Tsin = params['Tsin']
-        self.Uha = params['Uha']
+    with open(json_file) as jfile:
+        for line in jfile:
+            if '//' not in line:
+                json_str += line
 
-        self.cf = params['cf']
-        self.cpp = params['cpp']
-        self.cpw = params['cpw']
-        self.db0 = params['db0']
-        self.dp = params['dp']
-        self.e = params['e']
-        self.ef0 = params['ef0']
-        self.emf = params['emf']
-        self.ep = params['ep']
-        self.es = params['es']
-        self.ew = params['ew']
-        self.gamp = params['gamp']
-        self.gams = params['gams']
-        self.kp = params['kp']
-        self.ks = params['ks']
-        self.kw = params['kw']
-        self.lb = params['lb']
-        self.ms_dot = params['ms_dot']
-        self.mfg = params['mfg']
-        self.n1 = params['n1']
-        self.phi = params['phi']
-        self.rhob = params['rhob']
-        self.rhoc = params['rhoc']
-        self.rhop = params['rhop']
-        self.rhow = params['rhow']
-        self.rhobg = params['rhobg']
-        self.tf = params['tf']
-        self.wa = params['wa']
-        self.wc = params['wc']
-        self.wH2O = params['wH2O']
-        self.xw = params['xw']
+    json_dict = json.loads(json_str)
 
-    @property
-    def ugin(self):
-        R = 8.314
-        Ab = (np.pi / 4) * (self.Db**2)
-        mfgin = self.SB * (self.ms_dot / 3600) / Ab
-        rhogin = self.P * self.Mgin / (R * self.Tgin) * 1e-3
-        ugin = mfgin / rhogin
-        return ugin
+    # Get parameters from JSON dictionary
+    Db = json_dict['Db']
+    Ls = json_dict['Ls']
+    Mgin = json_dict['Mgin']
+    Pa = json_dict['Pa']
+    SB = json_dict['SB']
+    Tgin = json_dict['Tgin']
 
-    @property
-    def mfgin(self):
-        Ab = (np.pi / 4) * (self.Db**2)
-        mfgin = self.SB * (self.ms_dot / 3600) / Ab
-        return mfgin
+    ef0 = json_dict['ef0']
+    emf = json_dict['emf']
+    rhob = json_dict['rhob']
+    rhoc = json_dict['rhoc']
+    rhop = json_dict['rhop']
+    wa = json_dict['wa']
+    wc = json_dict['wc']
 
-    @property
-    def N(self):
-        N = self.N1 + self.N2 + self.N3
-        return N
+    # Biomass shrinkage factor [-]
+    psi = rhoc / (rhob * (wc + wa))
 
-    @property
-    def Ni(self):
-        Ni = self.N1 + self.N2
-        return Ni
+    # total grid points (N) and grid points to bed top (Np)
+    N = json_dict['N1'] + json_dict['N2'] + json_dict['N3']
+    Np = json_dict['N1'] + json_dict['N2']
 
-    @property
-    def Ab(self):
-        Ab = (np.pi / 4) * (self.Db**2)
-        return Ab
+    # Bed cross-sectional area [m²]
+    Ab = (np.pi / 4) * (Db**2)
 
-    @property
-    def db(self):
-        db = 3 * self.db0 * self.lb / (2 * self.lb + self.db0)
-        return db
+    # Inlet gas mass flux [kg/(s⋅m²)]
+    msdot = json_dict['msdot'] / 3600
+    mfgin = SB * msdot / Ab
 
-    @property
-    def Dwi(self):
-        Dwi = self.Dwo - 2 * self.xw
-        return Dwi
+    # Inlet gas velocity [m/s]
+    rhogin = json_dict['P'] * Mgin / (R * Tgin) * 1e-3
+    ugin = mfgin / rhogin
 
-    @property
-    def Lf0(self):
-        Lf0 = self.Lb - self.Lu
-        return Lf0
+    # Bulk gas density at inlet [kg/m³]
+    Pin = (1 - ef0) * rhop * g * Ls + Pa
+    rhog_in = Pin * Mgin / (R * Tgin) * 1e-3
+    rhob_gin = rhog_in
 
-    @property
-    def Lmf(self):
-        Ls = self.Lsi - self.Lu
-        Lmf = (1 - self.ef0) / (1 - self.emf) * Ls
-        return Lmf
+    # here
+    Lmf = (1 - ef0) / (1 - emf) * Ls
 
-    @property
-    def Ls(self):
-        Ls = self.Lsi - self.Lu
-        return Ls
+    # here
+    Pin = (1 - ef0) * rhop * g * Ls + Pa
 
-    @property
-    def Pin(self):
-        g = 9.81
-        Ls = self.Lsi - self.Lu
-        Pin = (1 - self.ef0) * self.rhop * g * Ls + self.Pa
-        return Pin
+    # Reactor internal diameter, same as Db [m]
+    Dwo = json_dict['Dwo']
+    xw = json_dict['xw']
+    Dwi = Dwo - 2 * xw
 
-    @property
-    def psi(self):
-        psi = self.rhoc / (self.rhob * (self.wc + self.wa))
-        return psi
+    # add calculated parameters to JSON dictionary
+    json_dict['Ab'] = Ab
+    json_dict['Dwi'] = Dwi
+    json_dict['Lmf'] = Lmf
+    json_dict['N'] = N
+    json_dict['Np'] = Np
+    json_dict['Pin'] = Pin
+    json_dict['mfgin'] = mfgin
+    json_dict['psi'] = psi
+    json_dict['rhob_gin'] = rhob_gin
+    json_dict['ugin'] = ugin
+
+    # return all parameters along with calculated parameters
+    return json_dict
