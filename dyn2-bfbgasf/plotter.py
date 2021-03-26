@@ -20,6 +20,18 @@ def plot_temp(Tg, Ts, x):
     _style_axis(ax)
 
 
+def plot_bio_char(rhob_b, rhob_c, x):
+    rhob_bx = np.concatenate(([rhob_b[0, -1]], rhob_b[:, -1], [rhob_b[-1, -1]]))
+    rhob_cx = np.concatenate(([rhob_c[0, -1]], rhob_c[:, -1], [rhob_c[-1, -1]]))
+
+    _, ax = plt.subplots()
+    ax.plot(x[0:75], rhob_bx[0:75])
+    ax.plot(x[0:75], rhob_cx[0:75])
+    ax.set_xlabel('Height [m]')
+    ax.set_ylabel('Concentration [kg/m³]')
+    _style_axis(ax)
+
+
 def plot_ts(results):
     x = results['x']
     t = results['t']
