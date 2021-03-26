@@ -1,3 +1,4 @@
+import argparse
 import pathlib
 import numpy as np
 import time
@@ -7,42 +8,78 @@ from parameters import get_params
 from solver import solver
 
 
+def _command_line_args():
+    """
+    Command line arguments.
+    """
+    parser = argparse.ArgumentParser(
+        description='🚀 Bubbling fluidized bed (BFB) gasifier program.',
+        epilog='🤓 Enjoy the program.')
+
+    parser.add_argument('params', help='path to JSON parameters file')
+    parser.add_argument('-r', '--run', action='store_true', help='run the program')
+    parser.add_argument('-p', '--plot', action='store_true', help='plot results')
+
+    args = parser.parse_args()
+    return args
+
+
 def main():
     """
     Run the 1D bubbling fluidized bed (BFB) gasification model.
     """
-    tic = time.perf_counter()
+    args = _command_line_args()
+    params_dir = pathlib.Path(args.params).parent
+    results_dir = pathlib.Path(params_dir / 'results')
 
-    # Get parameters and solve model
-    params = get_params('dyn2-bfbgasf/params.json')
-    results = solver(params)
+    if args.run:
 
-    # Elapsed time to get parameters and solve model
-    toc = time.perf_counter()
-    tsec = toc - tic
-    print(f'\n{" Summary ":-^60}\n')
-    print(f'{"elapsed time:":10} {tsec // 60:.0f}m {tsec % 60:.0f}s')
+        tic = time.perf_counter()
 
-    # Save results to binary NumPy files
-    pathlib.Path('./results').mkdir(exist_ok=True)
-    np.save('results/x', results['x'])
-    np.save('results/t', results['t'])
-    np.save('results/Ts', results['Ts'])
-    np.save('results/Tg', results['Tg'])
-    np.save('results/rhob_b', results['rhob_b'])
-    np.save('results/v', results['v'])
-    np.save('results/mfg', results['mfg'])
-    np.save('results/rhob_g', results['rhob_g'])
-    np.save('results/rhob_h2o', results['rhob_h2o'])
-    np.save('results/Tp', results['Tp'])
-    np.save('results/rhob_c', results['rhob_c'])
-    np.save('results/rhob_h2', results['rhob_h2'])
-    np.save('results/rhob_ch4', results['rhob_ch4'])
-    np.save('results/rhob_co', results['rhob_co'])
-    np.save('results/rhob_co2', results['rhob_co2'])
-    np.save('results/rhob_t', results['rhob_t'])
-    np.save('results/rhob_ca', results['rhob_ca'])
-    np.save('results/Tw', results['Tw'])
+        # Get parameters and solve model
+        params = get_params(args.params)
+        results = solver(params)
+
+        # Elapsed time to get parameters and solve model
+        toc = time.perf_counter()
+        tsec = toc - tic
+        print(f'\n{"elapsed time:":10} {tsec // 60:.0f}m {tsec % 60:.0f}s')
+
+        # Create `results` folder to store results
+        results_dir.mkdir(exist_ok=True)
+
+        # Save results to binary NumPy files
+        for key in results:
+            np.save(f'{results_dir / key}', results[key])
+
+    if args.plot:
+
+        # Load parameters from saved binary NumPy files
+        x = np.load(results_dir / 'x.npy')
+        Ts = np.load(results_dir / 'Ts.npy')
+        Tg = np.load(results_dir / 'Tg.npy')
+
+        plotter.plot_temp(Tg, Ts, x)
+        plotter.show_plots()
+
+    # np.save('results/x', results['x'])
+    # np.save('results/t', results['t'])
+    # np.save('results/Ts', results['Ts'])
+    # np.save('results/Tg', results['Tg'])
+    # np.save('results/rhob_b', results['rhob_b'])
+    # np.save('results/v', results['v'])
+    # np.save('results/mfg', results['mfg'])
+    # np.save('results/rhob_g', results['rhob_g'])
+    # np.save('results/rhob_h2o', results['rhob_h2o'])
+    # np.save('results/Tp', results['Tp'])
+    # np.save('results/rhob_c', results['rhob_c'])
+    # np.save('results/rhob_h2', results['rhob_h2'])
+    # np.save('results/rhob_ch4', results['rhob_ch4'])
+    # np.save('results/rhob_co', results['rhob_co'])
+    # np.save('results/rhob_co2', results['rhob_co2'])
+    # np.save('results/rhob_t', results['rhob_t'])
+    # np.save('results/rhob_ca', results['rhob_ca'])
+    # np.save('results/Tw', results['Tw'])
 
     # Plot results
     # plotter.plot_ts(results)

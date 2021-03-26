@@ -8,6 +8,18 @@ def _style_axis(ax):
     ax.tick_params(color='0.9')
 
 
+def plot_temp(Tg, Ts, x):
+    Tsx = np.concatenate(([Ts[0, -1]], Ts[:, -1], [Ts[-1, -1]]))
+    Tgx = np.concatenate(([Tg[0, -1]], Tg[:, -1], [Tg[-1, -1]]))
+
+    _, ax = plt.subplots()
+    ax.plot(x[0:75], Tsx[0:75] - 273)
+    ax.plot(x, Tgx - 273)
+    ax.set_xlabel('Height [m]')
+    ax.set_ylabel('Temperature [°C]')
+    _style_axis(ax)
+
+
 def plot_ts(results):
     x = results['x']
     t = results['t']
