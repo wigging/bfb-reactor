@@ -344,130 +344,21 @@ def rhobg_rate(params, state, dx, Sg):
     return drhobgdt
 
 
-def rhobh2o_rate(params, state, dx, Sh2o):
+def rhobx_rate(params, state, dx, Sx, x='', rhob_xin=0):
     """
-    H₂O mass concentration rate ∂ρH₂O/∂t.
-    """
-    N = params['N']
-    ugin = params['ugin']
-    rhob_gin = params['rhob_gin']
-
-    mfg = state['mfg']
-    rhob_g = state['rhob_g']
-    rhob_h2o = state['rhob_h2o']
-
-    rhog_in = rhob_gin
-    rhobh2o_in = rhog_in
-
-    yH2O = rhob_h2o / rhob_g
-
-    drhobh2o_dt = np.zeros(N)
-    drhobh2o_dt[0] = -(yH2O[0] * mfg[0] - rhobh2o_in * ugin) / dx[0] + Sh2o[0]
-    drhobh2o_dt[1:N] = -(yH2O[1:N] * mfg[1:N] - yH2O[0:N - 1] * mfg[0:N - 1]) / dx[1:N] + Sh2o[1:N]
-
-    return drhobh2o_dt
-
-
-def rhobh2_rate(params, state, dx, Sh2):
-    """
-    here
+    Mass concentration rate ∂ρ̅/∂t for a gas species.
     """
     N = params['N']
     ugin = params['ugin']
 
     mfg = state['mfg']
     rhob_g = state['rhob_g']
-    rhob_h2 = state['rhob_h2']
+    rhob_x = state[x]
 
-    rhob_h2in = 0
-    yH2 = rhob_h2 / rhob_g
+    yx = rhob_x / rhob_g
 
-    drhobh2_dt = np.zeros(N)
-    drhobh2_dt[0] = -(yH2[0] * mfg[0] - rhob_h2in * ugin) / dx[0] + Sh2[0]
-    drhobh2_dt[1:N] = -(yH2[1:N] * mfg[1:N] - yH2[0:N - 1] * mfg[0:N - 1]) / dx[1:N] + Sh2[1:N]
+    drhobx_dt = np.zeros(N)
+    drhobx_dt[0] = -(yx[0] * mfg[0] - rhob_xin * ugin) / dx[0] + Sx[0]
+    drhobx_dt[1:N] = -(yx[1:N] * mfg[1:N] - yx[0:N - 1] * mfg[0:N - 1]) / dx[1:N] + Sx[1:N]
 
-    return drhobh2_dt
-
-
-def rhobch4_rate(params, state, dx, Sch4):
-    """
-    here
-    """
-    N = params['N']
-    ugin = params['ugin']
-
-    mfg = state['mfg']
-    rhob_g = state['rhob_g']
-    rhob_ch4 = state['rhob_ch4']
-
-    rhob_ch4in = 0
-    yCH4 = rhob_ch4 / rhob_g
-
-    drhobch4_dt = np.zeros(N)
-    drhobch4_dt[0] = -(yCH4[0] * mfg[0] - rhob_ch4in * ugin) / dx[0] + Sch4[0]
-    drhobch4_dt[1:N] = -(yCH4[1:N] * mfg[1:N] - yCH4[0:N - 1] * mfg[0:N - 1]) / dx[1:N] + Sch4[1:N]
-
-    return drhobch4_dt
-
-
-def rhobco_rate(params, state, dx, Sco):
-    """
-    here
-    """
-    N = params['N']
-    ugin = params['ugin']
-
-    mfg = state['mfg']
-    rhob_g = state['rhob_g']
-    rhob_co = state['rhob_co']
-
-    rhob_coin = 0
-    yCO = rhob_co / rhob_g
-
-    drhobco_dt = np.zeros(N)
-    drhobco_dt[0] = -(yCO[0] * mfg[0] - rhob_coin * ugin) / dx[0] + Sco[0]
-    drhobco_dt[1:N] = -(yCO[1:N] * mfg[1:N] - yCO[0:N - 1] * mfg[0:N - 1]) / dx[1:N] + Sco[1:N]
-
-    return drhobco_dt
-
-
-def rhobco2_rate(params, state, dx, Sco2):
-    """
-    here
-    """
-    N = params['N']
-    ugin = params['ugin']
-
-    mfg = state['mfg']
-    rhob_g = state['rhob_g']
-    rhob_co2 = state['rhob_co2']
-
-    rhob_co2in = 0
-    yCO2 = rhob_co2 / rhob_g
-
-    drhobco2_dt = np.zeros(N)
-    drhobco2_dt[0] = -(yCO2[0] * mfg[0] - rhob_co2in * ugin) / dx[0] + Sco2[0]
-    drhobco2_dt[1:N] = -(yCO2[1:N] * mfg[1:N] - yCO2[0:N - 1] * mfg[0:N - 1]) / dx[1:N] + Sco2[1:N]
-
-    return drhobco2_dt
-
-
-def rhobt_rate(params, state, dx, St):
-    """
-    here
-    """
-    N = params['N']
-    ugin = params['ugin']
-
-    mfg = state['mfg']
-    rhob_g = state['rhob_g']
-    rhob_t = state['rhob_t']
-
-    rhob_tin = 0
-    yt = rhob_t / rhob_g
-
-    drhobt_dt = np.zeros(N)
-    drhobt_dt[0] = -(yt[0] * mfg[0] - rhob_tin * ugin) / dx[0] + St[0]
-    drhobt_dt[1:N] = -(yt[1:N] * mfg[1:N] - yt[0:N - 1] * mfg[0:N - 1]) / dx[1:N] + St[1:N]
-
-    return drhobt_dt
+    return drhobx_dt
