@@ -49,7 +49,7 @@ def solver(params):
         f'success {sol.success}\n'
         f'nfev    {sol.nfev}\n'
         f'njev    {sol.njev}\n'
-        f'nlu     {sol.nlu}\n'
+        f'nlu     {sol.nlu}'
     )
 
     # Print results information

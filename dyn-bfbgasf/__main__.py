@@ -43,7 +43,7 @@ def main():
         # Elapsed time to get parameters and solve model
         toc = time.perf_counter()
         tsec = toc - tic
-        print(f'\n{"elapsed time:":10} {tsec // 60:.0f}m {tsec % 60:.0f}s')
+        print(f'\nelapsed time {tsec // 60:.0f}m {tsec % 60:.0f}s')
 
         # Create `results` folder to store results
         results_dir.mkdir(exist_ok=True)

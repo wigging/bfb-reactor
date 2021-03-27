@@ -28,12 +28,16 @@ Bk = np.array([4.5918, 1.4028, 0.82511, 1.0208, 0.47093]) * 1e-4
 Ck = np.array([-6.4933, 3.3180, 1.9081, -2.2403, 4.9551]) * 1e-8
 
 
-def calc_props(params, dx, ef, mfg, Mg, rhob_g, Tg):
+def calc_props(params, state, dx, ef, Mg):
     """
     Calculate various gas phase properties.
     """
     N = params['N']
     Np = params['Np']
+
+    mfg = state['mfg']
+    rhob_g = state['rhob_g']
+    Tg = state['Tg']
     R = 8.314
 
     # Volume fraction of gas in bed and freeboard [-]
@@ -60,10 +64,18 @@ def calc_props(params, dx, ef, mfg, Mg, rhob_g, Tg):
     return afg, DP, P, rhob_gav, rhog, ug
 
 
-def calc_mix_props(rhob_ch4, rhob_co, rhob_co2, rhob_g, rhob_h2, rhob_h2o, rhob_t, Tg):
+def calc_mix_props(state):
     """
     Calculate gas mixture properties along the reactor.
     """
+    rhob_ch4 = state['rhob_ch4']
+    rhob_co = state['rhob_co']
+    rhob_co2 = state['rhob_co2']
+    rhob_g = state['rhob_g']
+    rhob_h2 = state['rhob_h2']
+    rhob_h2o = state['rhob_h2o']
+    rhob_t = state['rhob_t']
+    Tg = state['Tg']
 
     # Molecular weights
     M = np.array([[M_H2], [M_CH4], [M_CO], [M_CO2], [M_H2O]])
@@ -96,10 +108,10 @@ def calc_mix_props(rhob_ch4, rhob_co, rhob_co2, rhob_g, rhob_h2, rhob_h2o, rhob_
     cpg = yt * cpt + (1 - yt) * cpgg
     Pr = cpg * mu / kg
 
-    return Mg, Pr, cpg, cpgm, kg, mu, xg
+    return Mg, Pr, cpg, kg, mu, xg
 
 
-def calc_fluidization(params, Mg, Tg):
+def calc_fluidization(params, state, Mg):
     """
     Calculate fluidization properties. This method must be called after
     the `_calc_mix_props()` method.
@@ -116,6 +128,8 @@ def calc_fluidization(params, Mg, Tg):
     emf = params['emf']
     ms_dot = params['msdot'] / 3600
     rhop = params['rhop']
+
+    Tg = state['Tg']
     R = 8.314
     g = 9.81
 
@@ -154,7 +168,7 @@ def calc_fluidization(params, Mg, Tg):
     return Lp, ef, umf
 
 
-def mfg_terms(params, afg, ds, dx, ef, Lp, mfg, mu, rhob_gav, rhob_s, rhog, rhos, sfc, Sg, ug, v):
+def mfg_terms(params, state, afg, ds, dx, ef, Lp, mu, rhob_gav, rhob_s, rhog, rhos, sfc, Sg, ug):
     """
     Source terms for calculating gas mass flux.
     """
@@ -168,6 +182,9 @@ def mfg_terms(params, afg, ds, dx, ef, Lp, mfg, mu, rhob_gav, rhob_s, rhog, rhos
     msdot = params['msdot'] / 3600
     phi = params['phi']
     rhop = params['rhop']
+
+    mfg = state['mfg']
+    v = state['v']
     g = 9.81
 
     epb = (1 - ef0) * Ls / Lp
@@ -217,7 +234,7 @@ def mfg_terms(params, afg, ds, dx, ef, Lp, mfg, mu, rhob_gav, rhob_s, rhog, rhos
     return Cmf, Smgg, SmgV
 
 
-def mfg_rate(params, Cmf, dx, DP, mfg, rhob_gav, Smgg, SmgV, ug):
+def mfg_rate(params, state, Cmf, dx, DP, rhob_gav, Smgg, SmgV, ug):
     """
     Gas mass flux rate ∂ṁfg/∂t.
     """
@@ -225,6 +242,8 @@ def mfg_rate(params, Cmf, dx, DP, mfg, rhob_gav, Smgg, SmgV, ug):
     Np = params['Np']
     mfgin = params['mfgin']
     rhob_gin = params['rhob_gin']
+
+    mfg = state['mfg']
 
     # ∂ṁfg/∂t along height of the reactor
     dmfgdt = np.zeros(N)
@@ -249,7 +268,7 @@ def mfg_rate(params, Cmf, dx, DP, mfg, rhob_gav, Smgg, SmgV, ug):
     return dmfgdt
 
 
-def tg_rate(params, afg, cpg, ds, dx, kg, Lp, mu, Pr, qgs, rhob_g, rhob_s, rhog, rhos, Tg, Tp, Ts, Tw, ug, v):
+def tg_rate(params, state, afg, cpg, ds, dx, kg, Lp, mu, Pr, qgs, rhob_s, rhog, rhos, ug):
     """
     Gas temperature rate ∂T𝗀/∂t.
     """
@@ -264,6 +283,13 @@ def tg_rate(params, afg, cpg, ds, dx, kg, Lp, mu, Pr, qgs, rhob_g, rhob_s, rhog,
     ef0 = params['ef0']
     kw = params['kw']
     phi = params['phi']
+
+    rhob_g = state['rhob_g']
+    v = state['v']
+    Tg = state['Tg']
+    Tp = state['Tp']
+    Ts = state['Ts']
+    Tw = state['Tw']
 
     Re_dc = abs(rhog) * abs(-ug - v) * ds / mu
     Nud = 2 + 0.6 * Re_dc**0.5 * Pr**0.33
@@ -303,12 +329,13 @@ def tg_rate(params, afg, cpg, ds, dx, kg, Lp, mu, Pr, qgs, rhob_g, rhob_s, rhog,
     return dtgdt
 
 
-def rhobg_rate(params, dx, mfg, Sg):
+def rhobg_rate(params, state, dx, Sg):
     """
     Gas bulk density rate ∂ρ𝗀/∂t.
     """
     N = params['N']
     mfgin = params['mfgin']
+    mfg = state['mfg']
 
     drhobgdt = np.zeros(N)
     drhobgdt[0] = -(mfg[0] - mfgin) / dx[0] + Sg[0]
@@ -317,13 +344,17 @@ def rhobg_rate(params, dx, mfg, Sg):
     return drhobgdt
 
 
-def rhobh2o_rate(params, dx, mfg, rhob_g, rhob_h2o, Sh2o):
+def rhobh2o_rate(params, state, dx, Sh2o):
     """
     H₂O mass concentration rate ∂ρH₂O/∂t.
     """
     N = params['N']
     ugin = params['ugin']
     rhob_gin = params['rhob_gin']
+
+    mfg = state['mfg']
+    rhob_g = state['rhob_g']
+    rhob_h2o = state['rhob_h2o']
 
     rhog_in = rhob_gin
     rhobh2o_in = rhog_in
@@ -337,12 +368,16 @@ def rhobh2o_rate(params, dx, mfg, rhob_g, rhob_h2o, Sh2o):
     return drhobh2o_dt
 
 
-def rhobh2_rate(params, dx, mfg, rhob_g, rhob_h2, Sh2):
+def rhobh2_rate(params, state, dx, Sh2):
     """
     here
     """
     N = params['N']
     ugin = params['ugin']
+
+    mfg = state['mfg']
+    rhob_g = state['rhob_g']
+    rhob_h2 = state['rhob_h2']
 
     rhob_h2in = 0
     yH2 = rhob_h2 / rhob_g
@@ -354,12 +389,16 @@ def rhobh2_rate(params, dx, mfg, rhob_g, rhob_h2, Sh2):
     return drhobh2_dt
 
 
-def rhobch4_rate(params, dx, mfg, rhob_g, rhob_ch4, Sch4):
+def rhobch4_rate(params, state, dx, Sch4):
     """
     here
     """
     N = params['N']
     ugin = params['ugin']
+
+    mfg = state['mfg']
+    rhob_g = state['rhob_g']
+    rhob_ch4 = state['rhob_ch4']
 
     rhob_ch4in = 0
     yCH4 = rhob_ch4 / rhob_g
@@ -371,12 +410,16 @@ def rhobch4_rate(params, dx, mfg, rhob_g, rhob_ch4, Sch4):
     return drhobch4_dt
 
 
-def rhobco_rate(params, dx, mfg, rhob_g, rhob_co, Sco):
+def rhobco_rate(params, state, dx, Sco):
     """
     here
     """
     N = params['N']
     ugin = params['ugin']
+
+    mfg = state['mfg']
+    rhob_g = state['rhob_g']
+    rhob_co = state['rhob_co']
 
     rhob_coin = 0
     yCO = rhob_co / rhob_g
@@ -388,12 +431,16 @@ def rhobco_rate(params, dx, mfg, rhob_g, rhob_co, Sco):
     return drhobco_dt
 
 
-def rhobco2_rate(params, dx, mfg, rhob_g, rhob_co2, Sco2):
+def rhobco2_rate(params, state, dx, Sco2):
     """
     here
     """
     N = params['N']
     ugin = params['ugin']
+
+    mfg = state['mfg']
+    rhob_g = state['rhob_g']
+    rhob_co2 = state['rhob_co2']
 
     rhob_co2in = 0
     yCO2 = rhob_co2 / rhob_g
@@ -405,12 +452,16 @@ def rhobco2_rate(params, dx, mfg, rhob_g, rhob_co2, Sco2):
     return drhobco2_dt
 
 
-def rhobt_rate(params, dx, mfg, rhob_g, rhob_t, St):
+def rhobt_rate(params, state, dx, St):
     """
     here
     """
     N = params['N']
     ugin = params['ugin']
+
+    mfg = state['mfg']
+    rhob_g = state['rhob_g']
+    rhob_t = state['rhob_t']
 
     rhob_tin = 0
     yt = rhob_t / rhob_g

@@ -36,13 +36,24 @@ DH_R6 = 131
 Dhpy = 64e3
 
 
-def calc_sgen(params, P, Ts, Tg, Xcr, rhob_b, rhob_c, rhob_ch4, rhob_co, rhob_co2, rhob_h2, rhob_h2o, rhob_t, xg):
+def calc_sgen(params, state, P, Xcr, xg):
     """
     Mass generation rates for gas phase and solid phase.
     """
     N = params['N']
     Ni = params['Np']
     wH2O = params['wH2O']
+
+    rhob_b = state['rhob_b']
+    rhob_c = state['rhob_c']
+    rhob_ch4 = state['rhob_ch4']
+    rhob_co = state['rhob_co']
+    rhob_co2 = state['rhob_co2']
+    rhob_h2 = state['rhob_h2']
+    rhob_h2o = state['rhob_h2o']
+    rhob_t = state['rhob_t']
+    Tg = state['Tg']
+    Ts = state['Ts']
     R = 8.314
 
     # Biomass mass generation rate Sb [kg/(m³⋅s)]
@@ -136,10 +147,16 @@ def calc_sgen(params, P, Ts, Tg, Xcr, rhob_b, rhob_c, rhob_ch4, rhob_co, rhob_co
     return Sb, Sc, Sca, Sh2, Sh2o, Sch4, Sco, Sco2, Sg, St
 
 
-def calc_qgs(rhob_ch4, rhob_co, rhob_co2, rhob_h2, rhob_h2o, Tg):
+def calc_qgs(state):
     """
     here
     """
+    rhob_ch4 = state['rhob_ch4']
+    rhob_co = state['rhob_co']
+    rhob_co2 = state['rhob_co2']
+    rhob_h2 = state['rhob_h2']
+    rhob_h2o = state['rhob_h2o']
+    Tg = state['Tg']
     R = 8.314
 
     KR3 = 312 * np.exp(-15098 / Tg) * (rhob_ch4 / M_CH4) * 1e3
@@ -156,7 +173,7 @@ def calc_qgs(rhob_ch4, rhob_co, rhob_co2, rhob_h2, rhob_h2o, Tg):
     return qgs
 
 
-def calc_qss(params, P, rhob_c, rhob_h2, Sb, Tg, Ts, Xcr, xg):
+def calc_qss(params, state, P, Sb, Xcr, xg):
     """
     Heat generation term qss for solid temperature rate equation ∂T𝗌/∂t.
     Represents net heat generation from solid phase gasification and
@@ -164,6 +181,11 @@ def calc_qss(params, P, rhob_c, rhob_h2, Sb, Tg, Ts, Xcr, xg):
     method.
     """
     N = params['N']
+
+    rhob_c = state['rhob_c']
+    rhob_h2 = state['rhob_h2']
+    Tg = state['Tg']
+    Ts = state['Ts']
     R = 8.314
 
     Tss = 0.5 * (Ts + Tg)

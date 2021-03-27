@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def calc_props(params, rhob_b, rhob_c, rhob_ca, Ts):
+def calc_props(params, state):
     """
     Calculate various solid phase properties.
     """
@@ -12,6 +12,11 @@ def calc_props(params, rhob_b, rhob_c, rhob_ca, Ts):
     psi = params['psi']
     rhob = params['rhob']
     rhoc = params['rhoc']
+
+    rhob_b = state['rhob_b']
+    rhob_c = state['rhob_c']
+    rhob_ca = state['rhob_ca']
+    Ts = state['Ts']
 
     # Bulk solid mass concentration ρ̅𝗌 [kg/m³]
     rhob_s = rhob_b + rhob_c
@@ -54,10 +59,10 @@ def calc_props(params, rhob_b, rhob_c, rhob_ca, Ts):
         else:
             Cs[i] = rhob_s[i] * cps[i]
 
-    return Cs, Xcr, cpb, cpc, cps, ds, rhob_s, rhos, sfc
+    return Cs, Xcr, cps, ds, rhob_s, rhos, sfc
 
 
-def calc_hps(params, cps, ds, ef, Lp, mu, rhob_s, rhog, rhos, ug, v):
+def calc_hps(params, state, cps, ds, ef, Lp, mu, rhob_s, rhog, rhos, ug):
     """
     Calculate particle-particle heat transfer coefficient.
     """
@@ -74,6 +79,8 @@ def calc_hps(params, cps, ds, ef, Lp, mu, rhob_s, rhog, rhos, ug, v):
     kp = params['kp']
     ks = params['ks']
     rhop = params['rhop']
+
+    v = state['v']
     g = 9.81
 
     epb = (1 - ef0) * Ls / Lp
@@ -103,12 +110,17 @@ def calc_hps(params, cps, ds, ef, Lp, mu, rhob_s, rhog, rhos, ug, v):
     return hps
 
 
-def calc_qs(params, ds, hps, kg, mu, Pr, rhob_s, rhog, rhos, Tg, Tp, Ts, ug, v):
+def calc_qs(params, state, ds, hps, kg, mu, Pr, rhob_s, rhog, rhos, ug):
     """
     Calculate heat transfer due to gas flow and inert bed material. This
     method must be called after the `_calc_hps()` method.
     """
     es = params['es']
+
+    v = state['v']
+    Tg = state['Tg']
+    Tp = state['Tp']
+    Ts = state['Ts']
     sc = 5.67e-8
 
     Re_dc = abs(rhog) * abs(-ug - v) * ds / mu
@@ -124,7 +136,7 @@ def calc_qs(params, ds, hps, kg, mu, Pr, rhob_s, rhog, rhos, Tg, Tp, Ts, ug, v):
     return qs
 
 
-def ts_rate(params, Cs, dx, qs, qss, Ts, v):
+def ts_rate(params, state, Cs, dx, qs, qss):
     """
     Solid temperature rate ∂T𝗌/∂t.
     """
@@ -132,6 +144,9 @@ def ts_rate(params, Cs, dx, qs, qss, Ts, v):
     Np = params['Np']
     N1 = params['N1']
     Tsin = params['Tsin']
+
+    v = state['v']
+    Ts = state['Ts']
 
     # Solid temperature rate ∂T𝗌/∂t
     dtsdt = np.zeros(N)
@@ -160,7 +175,7 @@ def ts_rate(params, Cs, dx, qs, qss, Ts, v):
     return dtsdt
 
 
-def rhobb_rate(params, dx, rhob_b, Sb, ug, v):
+def rhobb_rate(params, state, dx, Sb, ug):
     """
     Biomass mass concentration rate ∂ρ̅𝖻/∂t.
     """
@@ -169,6 +184,9 @@ def rhobb_rate(params, dx, rhob_b, Sb, ug, v):
     Np = params['Np']
     N1 = params['N1']
     ms_dot = params['msdot'] / 3600
+
+    rhob_b = state['rhob_b']
+    v = state['v']
 
     # ∂ρ̅𝖻/∂t along height of the reactor
     drhobb_dt = np.zeros(N)
@@ -187,7 +205,7 @@ def rhobb_rate(params, dx, rhob_b, Sb, ug, v):
     return drhobb_dt
 
 
-def v_rate(params, afg, ds, dx, ef, Lp, mu, rhob_s, rhog, rhos, Sb, Sc, ug, umf, v, x):
+def v_rate(params, state, afg, ds, dx, ef, Lp, mu, rhob_s, rhog, rhos, Sb, Sc, ug, umf, x):
     """
     Solid fuel velocity rate ∂v/∂t.
     """
@@ -202,6 +220,8 @@ def v_rate(params, afg, ds, dx, ef, Lp, mu, rhob_s, rhog, rhos, Sb, Sc, ug, umf,
     lb = params['lb']
     rhop = params['rhop']
     ugin = params['ugin']
+
+    v = state['v']
     fw = 0.25
     g = 9.81
 
@@ -254,7 +274,7 @@ def v_rate(params, afg, ds, dx, ef, Lp, mu, rhob_s, rhog, rhos, Sb, Sc, ug, umf,
     return dvdt
 
 
-def tp_rate(params, afg, ds, hps, kg, Lp, mu, Pr, rhob_s, rhog, rhos, Tg, Tp, Ts, Tw, ug):
+def tp_rate(params, state, afg, ds, hps, kg, Lp, mu, Pr, rhob_s, rhog, rhos, ug):
     """
     Bed particle temperature rate ∂Tp/∂t.
     """
@@ -270,6 +290,11 @@ def tp_rate(params, afg, ds, hps, kg, Lp, mu, Pr, rhob_s, rhog, rhos, Tg, Tp, Ts
     ew = params['ew']
     phi = params['phi']
     rhop = params['rhop']
+
+    Tg = state['Tg']
+    Tp = state['Tp']
+    Ts = state['Ts']
+    Tw = state['Tw']
     sc = 5.67e-8
 
     epb = (1 - ef0) * Ls / Lp
@@ -296,12 +321,15 @@ def tp_rate(params, afg, ds, hps, kg, Lp, mu, Pr, rhob_s, rhog, rhos, Tg, Tp, Ts
     return dtpdt
 
 
-def rhobc_rate(params, dx, rhob_c, Sc, v):
+def rhobc_rate(params, state, dx, Sc):
     """
     here
     """
     N = params['N']
     Np = params['Np']
+
+    rhob_c = state['rhob_c']
+    v = state['v']
 
     drhobc_dt = np.zeros(N)
     drhobc_dt[0] = -1 / dx[0] * (-rhob_c[1] * v[1] + rhob_c[0] * v[0]) + Sc[0]
@@ -310,12 +338,15 @@ def rhobc_rate(params, dx, rhob_c, Sc, v):
     return drhobc_dt
 
 
-def rhobca_rate(params, dx, rhob_ca, Sca, v):
+def rhobca_rate(params, state, dx, Sca):
     """
     Calculate char accumulation rate.
     """
     N = params['N']
     Np = params['Np']
+
+    rhob_ca = state['rhob_ca']
+    v = state['v']
 
     drhobca_dt = np.zeros(N)
     drhobca_dt[0] = -1 / dx[0] * (-rhob_ca[1] * v[1] + rhob_ca[0] * v[0]) + Sca[0]
@@ -324,7 +355,7 @@ def rhobca_rate(params, dx, rhob_ca, Sca, v):
     return drhobca_dt
 
 
-def tw_rate(params, afg, kg, Lp, mu, Pr, rhog, Tg, Tp, Tw, ug):
+def tw_rate(params, state, afg, kg, Lp, mu, Pr, rhog, ug):
     """
     Calculate wall temperature rate.
     """
@@ -345,6 +376,10 @@ def tw_rate(params, afg, kg, Lp, mu, Pr, rhog, Tg, Tp, Tw, ug):
     kw = params['kw']
     phi = params['phi']
     rhow = params['rhow']
+
+    Tg = state['Tg']
+    Tp = state['Tp']
+    Tw = state['Tw']
     sc = 5.67e-8
 
     # Calculations
