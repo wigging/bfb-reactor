@@ -8,9 +8,10 @@ def _style_axis(ax):
     ax.tick_params(color='0.9')
 
 
-def plot_temp(Tg, Ts, x, t):
-    Tsx = np.concatenate(([Ts[0, -1]], Ts[:, -1], [Ts[-1, -1]]))
+def plot_temp(Tg, Tp, Ts, x, t):
     Tgx = np.concatenate(([Tg[0, -1]], Tg[:, -1], [Tg[-1, -1]]))
+    Tpx = np.concatenate(([Tp[0, -1]], Tp[:, -1], [Tp[-1, -1]]))
+    Tsx = np.concatenate(([Ts[0, -1]], Ts[:, -1], [Ts[-1, -1]]))
 
     _, ax = plt.subplots(tight_layout=True)
     ax.plot(x[0:75], Tsx[0:75] - 273)
@@ -19,9 +20,22 @@ def plot_temp(Tg, Ts, x, t):
     ax.set_ylabel('Temperature [°C]')
     _style_axis(ax)
 
+    _, ax = plt.subplots(tight_layout=True)
+    ax.plot(x, Tpx)
+    ax.set_xlabel('Height [m]')
+    ax.set_ylabel('Temperature [K]')
+    _style_axis(ax)
+
     X, Y = np.meshgrid(t, x[1:-1], )
     _, ax = plt.subplots(subplot_kw={"projection": "3d"}, tight_layout=True)
     ax.plot_surface(X, Y, Tg - 273, cmap='viridis')
+    ax.set_xlabel('Time [s]')
+    ax.set_ylabel('Height [m]')
+    ax.set_zlabel('Temperature [°C]')
+
+    X, Y = np.meshgrid(t, x[1:-1], )
+    _, ax = plt.subplots(subplot_kw={"projection": "3d"}, tight_layout=True)
+    ax.plot_surface(X, Y, Tp, cmap='viridis')
     ax.set_xlabel('Time [s]')
     ax.set_ylabel('Height [m]')
     ax.set_zlabel('Temperature [K]')

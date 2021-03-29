@@ -75,7 +75,7 @@ def main():
         Tw = np.load(results_dir / 'Tw.npy')
 
         # Plot results
-        plotter.plot_temp(Tg, Ts, x, t)
+        plotter.plot_temp(Tg, Tp, Ts, x, t)
         plotter.plot_bio_char(rhob_b, rhob_c, x)
         plotter.plot_mfg(mfg, x)
         plotter.plot_h2(rhob_h2, t)

@@ -15,24 +15,24 @@ def solver(params):
     # One-dimensional grid steps and points
     dx, x = grid(params, Lp=0.2347)
 
-    # Initial conditions
-    Ts0 = np.full(N, 300)
-    Tg0 = np.full(N, 1100)
-    rhobb0 = np.full(N, 1e-12)
+    # Initial conditions arrays
+    Ts0 = np.full(N, params['Ts0'])
+    Tg0 = np.full(N, params['Tg0'])
+    rhobb0 = np.full(N, params['rhobb0'])
     v0 = np.full(N, params['ugin'])
-    mfg0 = np.full(N, 0.2)
-    rhobg0 = np.full(N, 0.15)
-    rhobh2o0 = np.full(N, 0.15)
+    mfg0 = np.full(N, params['mfg0'])
+    rhobg0 = np.full(N, params['rhobg0'])
+    rhobh2o0 = np.full(N, params['rhobh2o0'])
     Tp0 = np.zeros(N)
-    Tp0[0:Np] = 1100
-    rhobc0 = np.full(N, 0)
-    rhobh20 = np.full(N, 1e-12)
-    rhobch40 = np.full(N, 1e-12)
-    rhobco0 = np.full(N, 1e-12)
-    rhobco20 = np.full(N, 1e-12)
-    rhobt0 = np.full(N, 1e-12)
-    rhobca0 = np.full(N, 1e-12)
-    Tw0 = np.full(N, 1100)
+    Tp0[0:Np] = params['Tp0']
+    rhobc0 = np.full(N, params['rhobc0'])
+    rhobh20 = np.full(N, params['rhobh20'])
+    rhobch40 = np.full(N, params['rhobch40'])
+    rhobco0 = np.full(N, params['rhobco0'])
+    rhobco20 = np.full(N, params['rhobco20'])
+    rhobt0 = np.full(N, params['rhobt0'])
+    rhobca0 = np.full(N, params['rhobca0'])
+    Tw0 = np.full(N, params['Tw0'])
 
     # Solve system of ODEs using SciPy ODE solver
     y0 = np.concatenate((
@@ -40,21 +40,17 @@ def solver(params):
         rhobch40, rhobco0, rhobco20, rhobt0, rhobca0, Tw0))
     tspan = (0, params['tf'])
     args = (params, dx, x)
-    sol = solve_ivp(dydt, tspan, y0, method='Radau', rtol=1e-6, args=args)
+    sol = solve_ivp(dydt, tspan, y0, method=params['method'], rtol=params['rtol'], args=args)
 
-    # Print solver information
-    print(f'\n{" Solver Info ":-^60}\n')
+    # Print solver and results information
     print(
+        f'\n{" Solver Info ":-^60}\n'
         f'message {sol.message}\n'
         f'success {sol.success}\n'
         f'nfev    {sol.nfev}\n'
         f'njev    {sol.njev}\n'
         f'nlu     {sol.nlu}'
-    )
-
-    # Print results information
-    print(f'\n{" Results Info ":-^60}\n')
-    print(
+        f'\n{" Results Info ":-^60}\n'
         f't0      {sol.t[0]}\n'
         f'tf      {sol.t[-1]}\n'
         f'len t   {len(sol.t)}\n'

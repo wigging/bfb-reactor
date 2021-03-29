@@ -1,5 +1,48 @@
 {
+    // Solver
+    // -----------------------------------------------------------------------
+    // method   integration method to use for solver
+    // rtol     relative tolerance for solver
+    // tf       final time for solver [s]
+    "method": "Radau",
+    "rtol": 1e-4,
+    "tf": 1000,
+
+    // Initial conditions
+    // -----------------------------------------------------------------------
+    // Ts0      initial solid temperature [K]
+    // Tg0      initial gas temperature [K]
+    // rhobb0   initial biomass concentration [kg/m³]
+    // mfg0     initial gas mass flux [kg/(s⋅m²)]
+    // rhobg0   initial bulk gas concentration [kg/m³]
+    // rhobh2o0 initial H₂O concentration [kg/m³]
+    // Tp0      initial inert bed temperature [K]
+    // rhobc0   initial char concentration [kg/m³]
+    // rhobh20  initial H₂ concentration [kg/m³]
+    // rhobch40 initial CH₄ concentration [kg/m³]
+    // rhobco0  initial CO concentration [kg/m³]
+    // rhobco20 initial CO₂ concentration [kg/m³]
+    // rhobt0   initial tar concentration [kg/m³]
+    // rhobca0  initial accumulated char concentration [kg/m³]
+    // Tw0      initial wall temperature [K]
+    "Ts0": 300,
+    "Tg0": 1100,
+    "rhobb0": 1e-12,
+    "mfg0": 0.2,
+    "rhobg0": 0.15,
+    "rhobh2o0": 0.15,
+    "Tp0": 1100,
+    "rhobc0": 0,
+    "rhobh20": 1e-12,
+    "rhobch40": 1e-12,
+    "rhobco0": 1e-12,
+    "rhobco20": 1e-12,
+    "rhobt0": 1e-12,
+    "rhobca0": 1e-12,
+    "Tw0": 1100,
+
     // Grid points
+    // -----------------------------------------------------------------------
     // N1   below fuel inlet in bed
     // N2   above fuel inlet in bed
     // N3   in freeboard
@@ -7,11 +50,8 @@
     "N2": 25,
     "N3": 25,
 
-    // Solver
-    // tf   total time [s]
-    "tf": 1000,
-
     // Reactor dimensions
+    // -----------------------------------------------------------------------
     // Db   internal diameter of the bed [m]
     // Dwo  external diameter of the reactor [m]
     // L    overall reactor height [m]
@@ -28,6 +68,7 @@
     "xw": 0.00211,
 
     // Gas phase
+    // -----------------------------------------------------------------------
     // Mgin     molecular weight at gas inlet [g/mol]
     // Pa       ambient pressure [Pa]
     // SB       steam to biomass ratio [-]
@@ -43,6 +84,7 @@
     "wH2O": 0.062,
 
     // Solid phase
+    // -----------------------------------------------------------------------
     // Tsin     solid fuel inlet temperature [K]
     // cf       Coulomb coefficient of friction between wood and sand [-]
     // cpp      h
@@ -53,7 +95,7 @@
     // es       h
     // ew       h
     // lb       length of raw biomass particle (assumed cylindrical) [m]
-    // msdot    mass flow rate of biomass [kg/s]
+    // msdot    mass flow rate of biomass [kg/hr]
     // n1       fragmentation factor of biomass particles [-]
     // phi      sphericity of inert bed particle [-]
     // rhob     density of biomass particle [kg/m³]
