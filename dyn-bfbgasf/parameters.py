@@ -23,6 +23,9 @@ def get_params(json_file):
 
     # Get parameters from JSON dictionary
     Db = json_dict['Db']
+    N1 = json_dict['N1']
+    N2 = json_dict['N2']
+    N3 = json_dict['N3']
     Ls = json_dict['Ls']
     Mgin = json_dict['Mgin']
     Pa = json_dict['Pa']
@@ -40,9 +43,9 @@ def get_params(json_file):
     # Biomass shrinkage factor [-]
     psi = rhoc / (rhob * (wc + wa))
 
-    # total grid points (N) and grid points to bed top (Np)
-    N = json_dict['N1'] + json_dict['N2'] + json_dict['N3']
-    Np = json_dict['N1'] + json_dict['N2']
+    # Total grid points (N) and grid points to bed top (Np)
+    N = N1 + N2 + N3
+    Np = N1 + N2
 
     # Bed cross-sectional area [m²]
     Ab = (np.pi / 4) * (Db**2)

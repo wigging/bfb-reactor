@@ -14,7 +14,7 @@ def _command_line_args():
     """
     parser = argparse.ArgumentParser(
         description='🚀 Bubbling fluidized bed (BFB) gasifier program.',
-        epilog='🤓 Enjoy the program.')
+        epilog='🤓 Enjoy.')
 
     parser.add_argument('params', help='path to JSON parameters file')
     parser.add_argument('-r', '--run', action='store_true', help='run the program')
@@ -32,15 +32,18 @@ def main():
     params_dir = pathlib.Path(args.params).parent
     results_dir = pathlib.Path(params_dir / 'results')
 
+    print('\n🚀 Bubbling fluidized bed (BFB) gasifier program.\n')
+
     if args.run:
 
+        print('Run solver ...\n')
         tic = time.perf_counter()
 
-        # Get parameters and solve model
+        # Get parameters and run the solver
         params = get_params(args.params)
         results = solver(params)
 
-        # Elapsed time to get parameters and solve model
+        # Elapsed time to get parameters and run solver
         toc = time.perf_counter()
         tsec = toc - tic
         print(f'\nelapsed time {tsec // 60:.0f}m {tsec % 60:.0f}s')
@@ -52,7 +55,14 @@ def main():
         for key in results:
             np.save(f'{results_dir / key}', results[key])
 
+        print(f'\nResults saved to {params_dir} folder.\n')
+
     if args.plot:
+
+        print('Show plots ...\n')
+
+        # Get parameters
+        params = get_params(args.params)
 
         # Load parameters from saved binary NumPy files
         x = np.load(results_dir / 'x.npy')
@@ -75,12 +85,14 @@ def main():
         Tw = np.load(results_dir / 'Tw.npy')
 
         # Plot results
-        plotter.plot_temp(Tg, Tp, Ts, x, t)
-        plotter.plot_bio_char(rhob_b, rhob_c, x)
+        plotter.plot_temp(params, Tg, Tp, Ts, Tw, t, x)
+        plotter.plot_bio_char(params, rhob_b, rhob_c, x)
         plotter.plot_mfg(mfg, x)
-        plotter.plot_h2(rhob_h2, t)
-        plotter.plot_velocity(mfg, rhob_g, v, x)
+        plotter.plot_h2(params, rhob_h2, t)
+        plotter.plot_velocity(params, mfg, rhob_g, v, x)
         plotter.show_plots()
+
+        print('Done.\n')
 
 
 if __name__ == '__main__':
