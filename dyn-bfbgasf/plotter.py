@@ -77,18 +77,18 @@ def plot_mfg(mfg, x):
     _style_axis(ax)
 
 
-def plot_h2(params, rhob_h2, t):
+def plot_concentration(params, rhob_x, t, species=''):
     """
-    Plot H₂ concentration with respect to time.
+    Plot concentration over time.
     """
     Np = params['Np']
 
     _, ax = plt.subplots(tight_layout=True)
-    ax.plot(t, rhob_h2[0], 'k', label='bottom')
-    ax.plot(t, rhob_h2[Np], 'k-.', label='bed top')
-    ax.plot(t, rhob_h2[-1], 'k--', label='top')
+    ax.plot(t, rhob_x[0], 'k', label='bottom')
+    ax.plot(t, rhob_x[Np], 'k-.', label='bed top')
+    ax.plot(t, rhob_x[-1], 'k--', label='top')
     ax.set_xlabel('Time [s]')
-    ax.set_ylabel('H₂ concentration [kg/m³]')
+    ax.set_ylabel(f'{species} concentration [kg/m³]')
     ax.legend()
     _style_axis(ax)
 

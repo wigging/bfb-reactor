@@ -36,7 +36,7 @@ def main():
 
     if args.run:
 
-        print('Run solver ...\n')
+        print('Run solver...\n')
         tic = time.perf_counter()
 
         # Get parameters and run the solver
@@ -59,7 +59,7 @@ def main():
 
     if args.plot:
 
-        print('Show plots ...\n')
+        print('Show plots...\n')
 
         # Get parameters
         params = get_params(args.params)
@@ -88,11 +88,15 @@ def main():
         plotter.plot_temp(params, Tg, Tp, Ts, Tw, t, x)
         plotter.plot_bio_char(params, rhob_b, rhob_c, x)
         plotter.plot_mfg(mfg, x)
-        plotter.plot_h2(params, rhob_h2, t)
+        plotter.plot_concentration(params, rhob_ch4, t, species='CH₄')
+        plotter.plot_concentration(params, rhob_co, t, species='CO')
+        plotter.plot_concentration(params, rhob_co2, t, species='CO₂')
+        plotter.plot_concentration(params, rhob_h2, t, species='H₂')
+        plotter.plot_concentration(params, rhob_h2o, t, species='H₂O')
         plotter.plot_velocity(params, mfg, rhob_g, v, x)
         plotter.show_plots()
 
-        print('Done.\n')
+        print('Done.')
 
 
 if __name__ == '__main__':
