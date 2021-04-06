@@ -10,8 +10,7 @@ def _style_axis(ax):
 
 def plot_temp(params, Tg, Tp, Ts, Tw, t, x):
     """
-    Plot temperatures along reactor height at final time. Surface plot of gas
-    temperature with respect to time and reactor height.
+    Plot temperatures along reactor height at final time.
     """
     Np = params['Np']
 
@@ -33,22 +32,15 @@ def plot_temp(params, Tg, Tp, Ts, Tw, t, x):
     ax.plot(x[0:Np], Tsx[0:Np] - 273, 'k--', label='Ts')
     ax.plot(x[0:Np], Tpx[0:Np] - 273, 'bo', fillstyle='none', label='Tp')
     ax.plot(x[0:Np], Tgx[0:Np] - 273, 'k', label='Tg')
-    ax.set_xlabel('Reactor height [m]')
+    ax.set_xlabel('Bed height [m]')
     ax.set_ylabel('Bed temperature [°C]')
     ax.legend(loc='best')
     _style_axis(ax)
 
-    X, Y = np.meshgrid(t, x[1:-1], )
-    _, ax = plt.subplots(subplot_kw={"projection": "3d"}, tight_layout=True)
-    ax.plot_surface(X, Y, Tg - 273, cmap='viridis')
-    ax.set_xlabel('Time [s]')
-    ax.set_ylabel('Reactor height [m]')
-    ax.set_zlabel('Tg [°C]')
-
 
 def plot_bio_char(params, rhob_b, rhob_c, x):
     """
-    Plot biomass and char concentrations along reactor height at final time.
+    Plot biomass and char concentrations in the bed at final time.
     """
     Np = params['Np']
 
@@ -58,7 +50,7 @@ def plot_bio_char(params, rhob_b, rhob_c, x):
     _, ax = plt.subplots(tight_layout=True)
     ax.plot(x[0:Np], rhob_bx[0:Np], label='biomass')
     ax.plot(x[0:Np], rhob_cx[0:Np], label='char')
-    ax.set_xlabel('Reactor height [m]')
+    ax.set_xlabel('Bed height [m]')
     ax.set_ylabel('Concentration [kg/m³]')
     ax.legend(loc='best')
     _style_axis(ax)
@@ -77,20 +69,41 @@ def plot_mfg(mfg, x):
     _style_axis(ax)
 
 
-def plot_concentration(params, rhob_x, t, species=''):
+def plot_concentration(params, rhob, t, x, species=''):
     """
-    Plot concentration over time.
+    Plot concentration over time at the bottom, top of the bed, and top of the
+    reactor. Also plot the concentration along the reactor height at the final
+    time step.
     """
     Np = params['Np']
 
-    _, ax = plt.subplots(tight_layout=True)
-    ax.plot(t, rhob_x[0], 'k', label='bottom')
-    ax.plot(t, rhob_x[Np], 'k-.', label='bed top')
-    ax.plot(t, rhob_x[-1], 'k--', label='top')
+    _, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, sharey=True, tight_layout=True)
+
+    ax1.plot(t, rhob[0], 'k', label='bottom')
+    ax1.plot(t, rhob[Np], 'k-.', label='bed top')
+    ax1.plot(t, rhob[-1], 'k--', label='top')
+    ax1.set_xlabel('Time [s]')
+    ax1.set_ylabel(f'{species} concentration [kg/m³]')
+    ax1.legend()
+    _style_axis(ax1)
+
+    rhob_x = np.concatenate(([rhob[0, -1]], rhob[:, -1], [rhob[-1, -1]]))
+
+    ax2.plot(x, rhob_x)
+    ax2.set_xlabel('Reactor height [m]')
+    _style_axis(ax2)
+
+
+def plot_surface(v, t, x, zlabel=''):
+    """
+    Create a 3-D surface plot for variable `v`.
+    """
+    X, Y = np.meshgrid(t, x[1:-1], )
+    _, ax = plt.subplots(subplot_kw={"projection": "3d"}, tight_layout=True)
+    ax.plot_surface(X, Y, v, cmap='viridis')
     ax.set_xlabel('Time [s]')
-    ax.set_ylabel(f'{species} concentration [kg/m³]')
-    ax.legend()
-    _style_axis(ax)
+    ax.set_ylabel('Reactor height [m]')
+    ax.set_zlabel(zlabel)
 
 
 def plot_velocity(params, mfg, rhob_g, v, x):
