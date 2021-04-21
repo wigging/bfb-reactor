@@ -8,6 +8,15 @@
     "rtol": 1e-4,
     "tf": 1000,
 
+    // Grid points
+    // -----------------------------------------------------------------------
+    // N1       below fuel inlet in bed
+    // N2       above fuel inlet in bed
+    // N3       in freeboard
+    "N1": 50,
+    "N2": 25,
+    "N3": 25,
+
     // Initial conditions
     // -----------------------------------------------------------------------
     // Ts0      initial solid temperature [K]
@@ -41,59 +50,64 @@
     "rhobca0": 1e-12,
     "Tw0": 1100,
 
-    // Grid points
+    // Reactor
     // -----------------------------------------------------------------------
-    // N1   below fuel inlet in bed
-    // N2   above fuel inlet in bed
-    // N3   in freeboard
-    "N1": 50,
-    "N2": 25,
-    "N3": 25,
-
-    // Reactor dimensions
-    // -----------------------------------------------------------------------
-    // Db   internal diameter of the bed [m]
-    // Dwo  external diameter of the reactor [m]
-    // L    overall reactor height [m]
-    // Ls   height of fuel inlet above distributor [m]
-    // Lp   ? "Lp": 0.2347,
-    // kw   thermal conductivity of the steel wall [W/(m⋅K)]
-    // xw   thickness of the reactor wall [m]
+    // Db       internal diameter of the bed [m]
+    // Dwo      external diameter of the reactor [m]
+    // L        overall reactor height [m]
+    // Ls       height of fuel inlet above distributor [m]
+    // Lsi      total initial bed height above distributor [m]
+    // Uha      overall heat transfer coefficient between wall and ambient [W/(m²⋅K)]
+    // cpw      specific heat capacity of steel [J/kg K]
+    // ew       reactor wall emissivity [-]
+    // kw       thermal conductivity of the reactor steel wall [W/(m⋅K)]
+    // rhow     density of the reactor steel wall [kg/m³]
+    // xw       thickness of the reactor wall [m]
     "Db": 0.1,
     "Dwo": 0.1042,
     "L": 1.0,
     "Ls": 0.212,
     "Lsi": 0.22,
+    "Uha": 0.018,
+    "cpw": 502,
+    "ew": 0.13,
     "kw": 16,
+    "rhow": 7930,
     "xw": 0.00211,
 
     // Gas phase
     // -----------------------------------------------------------------------
     // Mgin     molecular weight at gas inlet [g/mol]
+    // P        inlet gas pressure [Pa]
     // Pa       ambient pressure [Pa]
     // SB       steam to biomass ratio [-]
+    // Tam      ambient temperature [K]
     // Tgin     gas inlet temperature [K]
-    // wH2O
     "Mgin": 18,
     "P": 1.013e5,
     "Pa": 1.013e5,
     "SB": 1.0,
     "Tam": 300,
     "Tgin": 1073,
-    "Uha": 0.018,
-    "wH2O": 0.062,
 
     // Solid phase
     // -----------------------------------------------------------------------
+    // Gp       bulk modulus (elasticity property) of inert particles [GPa]
+    // Gs       bulk modulus (elasticity property) of fuel (wood) particles [GPa]
     // Tsin     solid fuel inlet temperature [K]
     // cf       Coulomb coefficient of friction between wood and sand [-]
-    // cpp      h
+    // cpp      specific heat capacity of inert particle [J/(kg⋅K)]
     // db0      diameter of raw biomass particle (assumed cylindrical) [m]
     // dp       diameter of the inert bed particle [m]
     // e        coefficient of restitution between wood and sand [-]
     // ef0      initial void fraction of the inert bed particles [-]
-    // es       h
-    // ew       h
+    // emf      void fraction of the bed of inert particles at minimum fluidization [-]
+    // ep       emissivity of inert particles [-]
+    // es       emissivity of fuel (wood) particles [-]
+    // gamp     Poisson's ratio (elasticity property) of inert particles [-]
+    // gams     Poisson's ratio (elasticity property) of fuel (wood) particles [-]
+    // kp       thermal conductivity of inert particles [W/(m⋅K)]
+    // ks       thermal conductivity of fuel particles (assumed same for biomass and char) [W/(m⋅K)]
     // lb       length of raw biomass particle (assumed cylindrical) [m]
     // msdot    mass flow rate of biomass [kg/hr]
     // n1       fragmentation factor of biomass particles [-]
@@ -101,6 +115,7 @@
     // rhob     density of biomass particle [kg/m³]
     // rhoc     density of char particle [kg/m³]
     // rhop     density of inert bed particle [kg/m³]
+    // wH2O     weight fraction of moisture in biomass particle [-]
     // wa       weight fraction of ash in biomass particle [-]
     // wc       weight fraction of char in biomass particle [-]
     "Gp": 50.0,
@@ -108,7 +123,6 @@
     "Tsin": 300,
     "cf": 0.62,
     "cpp": 830,
-    "cpw": 502,
     "db0": 6.0e-3,
     "dp": 6.15e-4,
     "e": 0.9,
@@ -116,7 +130,6 @@
     "emf": 0.454,
     "ep": 0.76,
     "es":0.95,
-    "ew": 0.13,
     "gamp": 0.25,
     "gams": 0.425,
     "kp": 0.260,
@@ -128,7 +141,7 @@
     "rhob": 423,
     "rhoc": 150,
     "rhop": 2650,
-    "rhow": 7930,
+    "wH2O": 0.062,
     "wa": 0.0041,
     "wc": 0.144
 }

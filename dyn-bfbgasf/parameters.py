@@ -23,22 +23,26 @@ def get_params(json_file):
 
     # Get parameters from JSON dictionary
     Db = json_dict['Db']
+    Dwo = json_dict['Dwo']
     N1 = json_dict['N1']
     N2 = json_dict['N2']
     N3 = json_dict['N3']
     Ls = json_dict['Ls']
     Mgin = json_dict['Mgin']
+    P = json_dict['P']
     Pa = json_dict['Pa']
     SB = json_dict['SB']
     Tgin = json_dict['Tgin']
 
     ef0 = json_dict['ef0']
     emf = json_dict['emf']
+    msdot = json_dict['msdot'] / 3600
     rhob = json_dict['rhob']
     rhoc = json_dict['rhoc']
     rhop = json_dict['rhop']
     wa = json_dict['wa']
     wc = json_dict['wc']
+    xw = json_dict['xw']
 
     # Biomass shrinkage factor [-]
     psi = rhoc / (rhob * (wc + wa))
@@ -51,11 +55,10 @@ def get_params(json_file):
     Ab = (np.pi / 4) * (Db**2)
 
     # Inlet gas mass flux [kg/(s⋅m²)]
-    msdot = json_dict['msdot'] / 3600
     mfgin = SB * msdot / Ab
 
     # Inlet gas velocity [m/s]
-    rhogin = json_dict['P'] * Mgin / (R * Tgin) * 1e-3
+    rhogin = P * Mgin / (R * Tgin) * 1e-3
     ugin = mfgin / rhogin
 
     # Bulk gas density at inlet [kg/m³]
@@ -63,15 +66,13 @@ def get_params(json_file):
     rhog_in = Pin * Mgin / (R * Tgin) * 1e-3
     rhob_gin = rhog_in
 
-    # here
+    # Bed height at minimum fluidization [m]
     Lmf = (1 - ef0) / (1 - emf) * Ls
 
-    # here
+    # Inlet gas pressure for atmospheric operated bed reactor [Pa]
     Pin = (1 - ef0) * rhop * g * Ls + Pa
 
     # Reactor internal diameter, same as Db [m]
-    Dwo = json_dict['Dwo']
-    xw = json_dict['xw']
     Dwi = Dwo - 2 * xw
 
     # add calculated parameters to JSON dictionary
