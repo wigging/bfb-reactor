@@ -78,7 +78,7 @@
     // Gas phase
     // -----------------------------------------------------------------------
     // Mgin     molecular weight at gas inlet [g/mol]
-    // P        inlet gas pressure [Pa]
+    // P        inlet gas pressure [Pa], this is not required
     // Pa       ambient pressure [Pa]
     // SB       steam to biomass ratio [-]
     // Tam      ambient temperature [K]
@@ -115,9 +115,9 @@
     // rhob     density of biomass particle [kg/m³]
     // rhoc     density of char particle [kg/m³]
     // rhop     density of inert bed particle [kg/m³]
-    // wH2O     weight fraction of moisture in biomass particle [-]
-    // wa       weight fraction of ash in biomass particle [-]
-    // wc       weight fraction of char in biomass particle [-]
+    // wH2O     weight fraction of moisture in the raw biomass particle [-]
+    // wa       weight fraction of ash in the raw biomass particle [-]
+    // wc       weight fraction of char in the raw biomass particle [-]
     "Gp": 50.0,
     "Gs":36.5,
     "Tsin": 300,
