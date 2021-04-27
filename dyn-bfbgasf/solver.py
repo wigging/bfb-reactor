@@ -1,6 +1,7 @@
 import numpy as np
 from scipy.integrate import solve_ivp
 
+from gas_phase import calc_bedexp, calc_bedexp2
 from grid import grid
 from dydt_system import dydt
 
@@ -12,7 +13,13 @@ def solver(params):
     N = params['N']
     Np = params['Np']
 
+    # Fluidization conditions
+    # here
+
     # One-dimensional grid steps and points
+    Hf = calc_bedexp(params)
+    Lp = calc_bedexp2(params)
+    breakpoint()
     dx, x = grid(params, Lp=0.2347)
 
     # Initial conditions arrays

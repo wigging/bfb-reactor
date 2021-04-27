@@ -111,6 +111,84 @@ def calc_mix_props(state):
     return Mg, Pr, cpg, kg, mu, xg
 
 
+def calc_bedexp(params):
+    """
+    Calculate the initial expanded bed height. This is used for creating the
+    grid points.
+    """
+    Db = params['Db']
+    Lsi = params['Lsi']
+    Tg0 = params['Tg0']
+    dp = params['dp']
+    phi = params['phi']
+    rhob_gin = params['rhob_gin']
+    rhop = params['rhop']
+    ugin = params['ugin']
+    g = 9.81
+
+    # dimensionless Archimedes number
+    Tgi = Tg0
+    rhogi = rhob_gin
+    muin = (Amu[4] + Bmu[4] * Tgi + Cmu[4] * Tgi**2) * 1e-7
+    Ar = (dp**3 * rhogi * (rhop - rhogi) * g) / muin**2
+
+    # minimum fluidization velocity
+    Rem = -33.67 + (33.67**2 + 0.0408 * Ar)**0.5
+    umf = Rem * muin / (rhogi * dp)
+
+    # dimensionless parameters for expanded bed height
+    beta = phi**1.5 * (0.329 - 1.156e3 * Ar**(-0.9))
+    gamma = (1.321 + 8.161e4 * Ar**(-1.04))**0.083
+
+    # dimensionless bed expansion
+    uo = ugin
+    delta_e = (1 - 0.0873 * (uo - umf)**(-0.362) * (uo / Db)**0.66 * (1 - gamma * (uo / umf)**(beta - 1))**0.66)**(-1) - 1
+
+    # expanded bed height
+    Hf = Lsi * (1 + delta_e)
+
+    return Hf
+
+
+def calc_bedexp2(params):
+    """
+    here
+    """
+    Db = params['Db']
+    Lmf = params['Lmf']
+    Lsi = params['Lsi']
+    Tg0 = params['Tg0']
+    dp = params['dp']
+    rhob_gin = params['rhob_gin']
+    rhop = params['rhop']
+    ugin = params['ugin']
+    g = 9.81
+
+    muin = (Amu[4] + Bmu[4] * Tg0 + Cmu[4] * Tg0**2) * 1e-7
+    Ar = dp**3 * rhob_gin * (rhop - rhob_gin) * g / muin**2
+    Rem = -33.67 + (33.67**2 + 0.0408 * Ar)**0.5
+    umf = Rem * muin / (rhob_gin * dp)
+    Umsr = (np.exp(-0.5405 * Lsi / Db) * (4.294e3 / Ar + 1.1) + 3.676e2 * Ar**(-1.5) + 1)
+
+    Drbs = 1
+    Rrb = (1 - 0.103 * (Umsr * umf - umf)**(-0.362) * Drbs)**(-1)
+    Rrs = (1 - 0.305 * (ugin - umf)**(-0.362) * Db**0.48)**(-1)
+    Dbr = 5.64e-4 / (Db * Lmf) * (1 + 27.2 * (ugin - umf))**(1 / 3) * ((1 + 6.84 * Lmf)**2.21 - 1)
+
+    if Dbr < Drbs:
+        Re = (1 - 0.103 * (ugin - umf)**(-0.362) * Dbr)**(-1)
+    else:
+        Re = Rrb * Rrs
+
+    De = Re - 1
+    if np.isnan(De) or De <= 0:
+        De = 0.05
+
+    Lp = (De + 1) * Lmf
+
+    return Lp
+
+
 def calc_fluidization(params, state, Mg):
     """
     Calculate fluidization properties. This method must be called after
