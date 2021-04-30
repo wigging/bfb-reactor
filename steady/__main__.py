@@ -25,7 +25,7 @@ def main():
     Run a 1-D bubbling fluidized bed (BFB) steady-state gasification model.
     """
 
-    params = _get_params('ss-bfbgasf/params.json')
+    params = _get_params('steady/params.json')
     results = solver(params)
 
     plotter.plot_ug_v(results)

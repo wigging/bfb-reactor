@@ -13,7 +13,7 @@ def _command_line_args():
     Command line arguments.
     """
     parser = argparse.ArgumentParser(
-        description='🚀 Bubbling fluidized bed (BFB) gasifier program.',
+        description='🚀 Bubbling fluidized bed (BFB) reactor program.',
         epilog='🤓 Enjoy.')
 
     parser.add_argument('params', help='path to JSON parameters file')
@@ -32,7 +32,7 @@ def main():
     params_dir = pathlib.Path(args.params).parent
     results_dir = pathlib.Path(params_dir / 'results')
 
-    print('\n🚀 Bubbling fluidized bed (BFB) gasifier program.\n')
+    print('\n🚀 Bubbling fluidized bed (BFB) reactor program.\n')
 
     if args.run:
 

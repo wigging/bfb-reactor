@@ -1,8 +1,8 @@
-# One-dimensional BFB gasifier model
+# One-dimensional BFB reactor model
 
 :warning: This project is a work in progress. :warning:
 
-This repository contains a dynamic and a steady-state 1D model of a bubbling fluidized bed (BFB) gasifier. At the moment, the dynamic model is in the `dyn-bfbgasf` folder while the steady-state model is in the `ss-bfbgasf` folder.
+This repository contains a dynamic and a steady-state 1D model of a bubbling fluidized bed (BFB) reactor. At the moment, the dynamic model is in the `dynamic` folder while the steady-state model is in the `steady` folder.
 
 ## Usage
 
@@ -10,15 +10,15 @@ Use the commands shown below to run each model.
 
 ```bash
 # Run the dynamic model
-$ python dyn-bfbgasf examples/params.json --run
+$ python dynamic examples/params.json --run
 
 # Plot results from the dynamic model
-$  python dyn-bfbgasf examples/params.json --plot
+$  python dynamic examples/params.json --plot
 ```
 
 ```bash
 # Run the steady-state model
-$ python ss-bfbgasf
+$ python steady
 ```
 
 ## Reference
