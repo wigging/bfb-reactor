@@ -27,7 +27,9 @@ def get_params(json_file):
     N1 = json_dict['N1']
     N2 = json_dict['N2']
     N3 = json_dict['N3']
+    Lb = json_dict['Lb']
     Ls = json_dict['Ls']
+    Lu = json_dict['Lu']
     Mgin = json_dict['Mgin']
     P = json_dict['P']
     Pa = json_dict['Pa']
@@ -66,6 +68,9 @@ def get_params(json_file):
     rhog_in = Pin * Mgin / (R * Tgin) * 1e-3
     rhob_gin = rhog_in
 
+    # Effective height of bed between biomass feed and gas entry point [m]
+    Lf0 = Lb - Lu
+
     # Bed height at minimum fluidization [m]
     Lmf = (1 - ef0) / (1 - emf) * Ls
 
@@ -78,6 +83,7 @@ def get_params(json_file):
     # add calculated parameters to JSON dictionary
     json_dict['Ab'] = Ab
     json_dict['Dwi'] = Dwi
+    json_dict['Lf0'] = Lf0
     json_dict['Lmf'] = Lmf
     json_dict['N'] = N
     json_dict['Np'] = Np

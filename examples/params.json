@@ -55,8 +55,10 @@
     // Db       internal diameter of the bed [m]
     // Dwo      external diameter of the reactor [m]
     // L        overall reactor height [m]
+    // Lb       biomass feeding position above distributor [m]
     // Ls       height of fuel inlet above distributor [m]
     // Lsi      total initial bed height above distributor [m]
+    // Lu       gas feeding position above distributor [m]
     // Uha      overall heat transfer coefficient between wall and ambient [W/(m²⋅K)]
     // cpw      specific heat capacity of steel [J/kg K]
     // ew       reactor wall emissivity [-]
@@ -66,8 +68,10 @@
     "Db": 0.1,
     "Dwo": 0.1042,
     "L": 1.0,
+    "Lb": 0.212,
     "Ls": 0.212,
     "Lsi": 0.22,
+    "Lu": 0,
     "Uha": 0.018,
     "cpw": 502,
     "ew": 0.13,
