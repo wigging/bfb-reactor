@@ -1,17 +1,45 @@
+/* All screens ------------------------------------------------------ */
+
 body {
     background-color: rgb(241, 241, 241);
-    position: relative;
 }
 
-h1 {
-    margin-top: 40px;
-    margin-bottom: 20px;
+/* Mobile screens --------------------------------------------------- */
+
+@media only screen and (max-width: 600px) {
+
+    body {
+        padding-top: 5rem;
+    }
+
+    h2 {
+        margin-top: -4.5rem;
+        padding-top: 4.5rem;
+    }
+
+    .navbar {
+        background-color: rgb(241, 241, 241);
+        padding-left: 1rem;
+        padding-right: 1rem;
+        position: fixed;
+        top: 0;
+        right: 0;
+        left: 0;
+        border-bottom: 1px solid lightgray;
+        z-index: 100;
+    }
 }
 
-h2 {
-    margin-top: 60px;
-}
+/* Large screens ---------------------------------------------------- */
 
-.sticky-top {
-    top: 3rem;
+@media (min-width: 500px) {
+
+    body {
+        padding-top: 2rem;
+    }
+
+    .navbar {
+        position: sticky;
+        top: 2rem;
+    }
 }
