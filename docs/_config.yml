@@ -1,0 +1,4 @@
+collections:
+  - sections
+
+exclude: [README.md, Gemfile]
