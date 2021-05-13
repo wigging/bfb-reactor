@@ -111,144 +111,111 @@ def calc_mix_props(state):
     return Mg, Pr, cpg, kg, mu, xg
 
 
-def calc_bedexp(params):
+def calc_bedexp(params, Mg=None, Tg=None):
     """
-    Calculate the expanded bed height Lp [m].
+    Calculate the total fluidized bed height Hf [m] and the fluidized be void
+    fraction ef [-].
     """
     Db = params['Db']
-    Lf0 = params['Lf0']
-    Lmf = params['Lmf']
-    Lsi = params['Lsi']
+    H0 = params['Lf0']
+    Hmf = params['Lmf']
+    Np = params['Np']
+    Pin = params['Pin']
     Tg0 = params['Tg0']
+    Tgin = params['Tgin']
     dp = params['dp']
+    ef0 = params['ef0']
     phi = params['phi']
     rhob_gin = params['rhob_gin']
     rhop = params['rhop']
     ugin = params['ugin']
-    g = 9.81
-
-    # dimensionless Archimedes number
-    Tgi = Tg0
-    rhogi = rhob_gin
-    muin = (Amu[4] + Bmu[4] * Tgi + Cmu[4] * Tgi**2) * 1e-7
-    Ar = (dp**3 * rhogi * (rhop - rhogi) * g) / muin**2
-
-    # minimum fluidization velocity
-    Rem = -33.67 + (33.67**2 + 0.0408 * Ar)**0.5
-    umf = Rem * muin / (rhogi * dp)
-
-    # bubbling-slugging transition parameters (Agu et al, I&EC Research 2018)
-    c_bub = (1.321 + 8.161e4 * Ar**(-1.04))**0.083
-
-    if np.log(Ar) < 8:
-        a_bub = phi**1.5 * (4.168 - 0.603 * np.log(Ar))
-    else:
-        a_bub = phi**1.5 * (0.329 - 1.156e3 * Ar**(-0.9))
-
-    if np.log(Ar) < 8.9:
-        a_slug = 0.725 + 0.1 * np.log(Ar)
-    else:
-        a_slug = 1.184 + 8.962e4 * Ar**(-1.35)
-
-    if np.log(Ar) < 9.3:
-        c_slug = 0.042 + 0.047 * np.log(Ar)
-    else:
-        c_slug = (0.978 - 1.964e2 * Ar**(-0.8))**4.88
-
-    ct = c_bub / c_slug
-    at = 1 / (a_slug - a_bub)
-
-    # minimum slugging velocity to fluidization ratio (Umsr) and bubble to bed diameter ratio (Dbr) in bubble regime
-    uo = ugin
-
-    if Ar > 400:
-        Umsr = 1 + 2.33 * umf**(-0.027) * (phi**0.35 * ct**at - 1) * (Lf0 / Db)**(-0.588)
-        Dbr = 0.848 * (uo / Db)**0.66 * (1 - c_bub * (uo / umf)**(a_bub - 1))**0.66
-    else:
-        Umsr = (np.exp(-0.5405 * Lsi / Db) * (4.294e3 / Ar + 1.1) + 3.676e2 * Ar**(-1.5) + 1)
-        Dbr = 5.64e-4 / (Db * Lmf) * (1 + 27.2 * (uo - umf))**(1 / 3) * ((1 + 6.84 * Lmf)**2.21 - 1)
-
-    # bubble to bed diameter ratio at bubble-slug transition
-    Drbs_stable = 0.848 * (1 / Db * umf * phi**0.35 * ct**at)**0.66 * (1 - c_bub * (phi**0.35 * ct**at)**(a_bub - 1))**0.66
-    Drbs = min(1, Drbs_stable)
-
-    # component of bed expansion ratio in slug regime
-    Rrb = (1 - 0.103 * (Umsr * umf - umf)**(-0.362) * Drbs)**(-1)
-    Rrs = (1 - 0.305 * (uo - umf)**(-0.362) * Db**0.48)**(-1)
-
-    # assessment of bed expansion between bubble and slug regime
-    if Dbr < Drbs:
-        # bubble regime
-        Re = (1 - 0.103 * (uo - umf)**(-0.362) * Dbr)**(-1)
-    else:
-        # slug regime
-        Re = Rrb * Rrs
-
-    # degree of bed expansion (De) and fluidized bed height (Lp)
-    De = Re - 1
-    if np.isnan(De) or De <= 0:
-        De = 0.05
-
-    Lp = (De + 1) * Lmf
-
-    return Lp
-
-
-def calc_fluidization(params, state, Mg):
-    """
-    Calculate fluidization properties. This method must be called after
-    the `_calc_mix_props()` method.
-    """
-    Ab = params['Ab']
-    Db = params['Db']
-    Lmf = params['Lmf']
-    Lsi = params['Lsi']
-    Np = params['Np']
-    Pin = params['Pin']
-    SB = params['SB']
-    Tgin = params['Tgin']
-    dp = params['dp']
-    emf = params['emf']
-    ms_dot = params['msdot'] / 3600
-    rhop = params['rhop']
-
-    Tg = state['Tg']
     R = 8.314
     g = 9.81
 
-    Tgm = np.mean(np.append(Tg[0:Np], Tgin))
-    Tgi = max(Tgin, Tgm)
+    # Gas phase properties
+    if isinstance(Mg, np.ndarray) and isinstance(Tg, np.ndarray):
+        Tgm = np.mean(np.append(Tg[0:Np], Tgin))
+        Tgi = max(Tgin, Tgm)
+
+        Mgi = np.mean(Mg[0:Np])
+        rhogi = Pin * Mgi / (R * Tgi) * 1e-3
+    else:
+        Tgi = Tg0
+        rhogi = rhob_gin
+
     muin = (Amu[4] + Bmu[4] * Tgi + Cmu[4] * Tgi**2) * 1e-7
 
-    Mgi = np.mean(Mg[0:Np])
-    rhogi = Pin * Mgi / (R * Tgi) * 1e-3
+    # Dimensionless Archimedes number [-]
+    Ar = (dp**3 * rhogi * (rhop - rhogi) * g) / muin**2
 
-    Ar = dp**3 * rhogi * (rhop - rhogi) * g / muin**2
+    # Minimum fluidization velocity [m/s]
     Rem = -33.67 + (33.67**2 + 0.0408 * Ar)**0.5
     umf = Rem * muin / (rhogi * dp)
-    Umsr = (np.exp(-0.5405 * Lsi / Db) * (4.294e3 / Ar + 1.1) + 3.676e2 * Ar**(-1.5) + 1)
 
-    mfgin = SB * ms_dot / Ab
-    Ugin = mfgin / rhogi
+    # Correlation parameters a and c for bubbling and slugging conditions
+    # where _b is for bubbling and _s is for slugging
+    logAr = np.log(Ar)
 
-    Drbs = 1
-    Rrb = (1 - 0.103 * (Umsr * umf - umf)**(-0.362) * Drbs)**(-1)
-    Rrs = (1 - 0.305 * (Ugin - umf)**(-0.362) * Db**0.48)**(-1)
-    Dbr = 5.64e-4 / (Db * Lmf) * (1 + 27.2 * (Ugin - umf))**(1 / 3) * ((1 + 6.84 * Lmf)**2.21 - 1)
-
-    if Dbr < Drbs:
-        Re = (1 - 0.103 * (Ugin - umf)**(-0.362) * Dbr)**(-1)
+    if logAr < 8:
+        a_b = phi**1.5 * (4.168 - 0.603 * logAr)
     else:
-        Re = Rrb * Rrs
+        a_b = phi**1.5 * (0.329 - 1.156e3 * Ar**(-0.9))
 
-    De = Re - 1
-    if np.isnan(De) or De <= 0:
-        De = 0.05
+    if logAr < 8.9:
+        a_s = 0.725 + 0.1 * logAr
+    else:
+        a_s = 1.184 + 8.962e4 * Ar**(-1.35)
 
-    ef = 1 - (1 - emf) / (De + 1)
-    Lp = (De + 1) * Lmf
+    if logAr < 9.3:
+        c_s = 0.042 + 0.047 * logAr
+    else:
+        c_s = (0.978 - 1.964e2 * Ar**(-0.8))**4.88
 
-    return Lp, ef, umf
+    c_b = (1.321 + 8.161e4 * Ar**(-1.04))**0.083
+    c_t = c_b / c_s
+    a_t = 1 / (a_s - a_b)
+
+    # Minimum slugging velocity to fluidization ratio Ums/Umf as Umsr
+    # Bubble to bed diameter ratio db/D as Dbr
+    uo = ugin
+
+    if Ar > 400:
+        Umsr = 1 + 2.33 * umf**(-0.027) * (phi**0.35 * c_t**a_t - 1) * (H0 / Db)**(-0.588)
+        Dbr = 0.848 * (uo / Db)**0.66 * (1 - c_b * (uo / umf)**(a_b - 1))**0.66
+    else:
+        Umsr = (np.exp(-0.5405 * H0 / Db) * (4.294e3 / Ar + 1.1) + 3.676e2 * Ar**(-1.5) + 1)
+        Dbr = 5.64e-4 / (Db * Hmf) * (1 + 27.2 * (uo - umf))**(1 / 3) * ((1 + 6.84 * Hmf)**2.21 - 1)
+
+    # Max bubble to bed diameter ratio (db/D)max at transition to slugging
+    Drbs_stable = 0.848 * (1 / Db * umf * phi**0.35 * c_t**a_t)**0.66 * (1 - c_b * (phi**0.35 * c_t**a_t)**(a_b - 1))**0.66
+    Drbs = min(1, Drbs_stable)
+
+    # Component of bed expansion ratio in slug regime
+    # where Rrb is for Hmax/Hmf and Rrs is for Hf/Hmax
+    Rrb = (1 - 0.103 * (Umsr * umf - umf)**(-0.362) * Drbs)**(-1)
+    Rrs = (1 - 0.305 * (uo - umf)**(-0.362) * Db**0.48)**(-1)
+
+    # Assessment of bed expansion between bubble and slug regime
+    # where Dbr < Drbs is bubble regime otherwise slug regime
+    if Dbr < Drbs:
+        delta_e = (1 - 0.103 * (uo - umf)**(-0.362) * Dbr)**(-1) - 1
+    else:
+        delta_e = Rrb * Rrs - 1
+
+    if np.isnan(delta_e) or delta_e <= 0:
+        delta_e = 0.05
+
+    # Total fluidized bed height [m]
+    Hf = Hmf * (delta_e + 1)
+
+    # Bed void fraction at minimum fluidization [-]
+    emff = (0.071 / phi)**(1 / 3)
+    emf = max(ef0, emff)
+
+    # Fluidized bed void fraction [-]
+    ef = 1 - (1 - emf) / (1 + delta_e)
+
+    return Hf, ef, umf
 
 
 def mfg_terms(params, state, afg, ds, dx, ef, Lp, mu, rhob_gav, rhob_s, rhog, rhos, sfc, Sg, ug):

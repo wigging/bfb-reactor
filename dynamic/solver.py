@@ -14,7 +14,7 @@ def solver(params):
     Np = params['Np']
 
     # One-dimensional grid steps and points
-    Lp = calc_bedexp(params)
+    Lp, _, _ = calc_bedexp(params)
     dx, x = grid(params, Lp)
 
     # Initial conditions arrays

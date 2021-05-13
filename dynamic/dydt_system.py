@@ -33,7 +33,7 @@ def dydt(t, y, params, dx, x):
 
     # Gas phase properties
     Mg, Pr, cpg, kg, mu, xg = gas.calc_mix_props(state)
-    Lp, ef, umf = gas.calc_fluidization(params, state, Mg)
+    Lp, ef, umf = gas.calc_bedexp(params, Mg=Mg, Tg=state['Tg'])
     afg, DP, P, rhob_gav, rhog, ug = gas.calc_props(params, state, dx, ef, Mg)
 
     # Solid phase properties
