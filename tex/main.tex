@@ -1,6 +1,6 @@
 % --- Configuration ----------------------------------------------------
 
-\documentclass[12pt]{article}
+\documentclass[12pt,titlepage]{article}
 
 \usepackage[utf8]{inputenc}
 
@@ -50,6 +50,10 @@
 
 \maketitle
 
+\tableofcontents
+
+\section{Introduction}
+
 This documentation is for the one-dimensional bubbling fluidized bed (BFB) reactor model developed in Python. The model predicts dynamic and steady-state conditions of a BFB reactor. See the sections below for installation and usage information along with discussions of the equations that are utilized by the model. The Python code for the model is open source and available on GitHub at \url{https://github.com/wigging/bfb-reactor}. An online version of this documentation is hosted at \url{https://gavinw.me/bfb-reactor/}. This work is inspired by the one-dimensional gasification model published by Agu et al. \cite{Agu-2019f}.
 
 \section{Installation}
@@ -65,7 +69,7 @@ Use the commands shown below to run each model from the terminal.
 $ python dynamic examples/params.json --run
 
 # Plot results from the dynamic model
-$ python dynamic examples/params.json –plot
+$ python dynamic examples/params.json -plot
 
 # Run the steady-state model
 $ python steady
