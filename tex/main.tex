@@ -4,12 +4,12 @@
 
 \usepackage[utf8]{inputenc}
 
-% \usepackage{kpfonts}
-% \usepackage[T1]{fontenc}
-
-\usepackage{sansmathfonts}
+\usepackage{kpfonts}
 \usepackage[T1]{fontenc}
-\renewcommand*\familydefault{\sfdefault}
+
+% \usepackage{sansmathfonts}
+% \usepackage[T1]{fontenc}
+% \renewcommand*\familydefault{\sfdefault}
 
 % \usepackage[T1]{fontenc}
 % \usepackage[sfdefault]{FiraSans}
@@ -36,6 +36,9 @@
 
 \usepackage{biblatex}
 \addbibresource{references.bib}
+
+% Run this command in the terminal to build the nomenclature then rerun latex
+% makeindex main.nlo -s nomencl.ist -o main.nls
 
 %--- Document ---------------------------------------------------------
 
@@ -114,22 +117,17 @@ The steam-biomass gasification reactions and associated rate parameters are give
         \toprule
         Item & Reaction & $\Delta$H & Rate constant & Ref. \\
         \midrule
-        5 & C + H$_2$O $\rightarrow$ CO + H$_2$ & 131
-            & $\displaystyle r_5 = \frac{k_{5,1} x_{H_2O}}{1/p + k_{5,2} x_{H_2} + k_{5,3} x_{H_2O}} (1 - X_c) [C]$ & x \\[1.5em]
+        5 & C + H$_2$O $\rightarrow$ CO + H$_2$ & 131 & $\displaystyle r_5 = \frac{k_{5,1} x_{H_2O}}{1/p + k_{5,2} x_{H_2} + k_{5,3} x_{H_2O}} (1 - X_c) [C]$ & x \\[1.5em]
           & & & $\displaystyle k_{5,1} = 1.25 \times 10^5 exp\left( -\frac{28,000}{T} \right)$ & \\[1em]
           & & & $\displaystyle k_{5,2} = 3.26 \times 10^{-4}$ & \\[1em]
           & & & $\displaystyle k_{5,3} = 0.313 exp \left( -\frac{10,120}{T} \right)$ & \\[1em]
-        6 & C + CO$_2$ $\rightarrow$ 2 CO & 172
-            & $\displaystyle r_6 = \frac{k_{6,1}}{1 + \frac{x_{CO}}{k_{6,2} x_{CO_2}}} [C]$ & x \\[1.5em]
+        6 & C + CO$_2$ $\rightarrow$ 2 CO & 172 & $\displaystyle r_6 = \frac{k_{6,1}}{1 + \frac{x_{CO}}{k_{6,2} x_{CO_2}}} [C]$ & x \\[1.5em]
           & & & $\displaystyle k_{6,1} = 3.6 \times 10^5 exp \left( -\frac{20,130}{T} \right)$ & \\[1em]
           & & & $\displaystyle k_{6,2} = 4.15 \times 10^3 exp \left( -\frac{11,420}{T} \right)$ & \\[1em]
-        7 & C + 2H$_2$ $\rightarrow$ CH$_4$ & -75
-            & $\displaystyle r_7 = 6.11 \times 10^{-3} exp \left( -\frac{80,333}{R T} \right) [H_2][C]$ & x \\[1.5em]
-        8 & CO + H$_2$O $\leftrightarrow$ CO$_2$ + H$_2$ & -41
-            & $\displaystyle r_8 = 0.278 exp \left(-\frac{12,560}{R T} \right) \left([H_2O][CO] - \frac{[H_2O][CO]}{k_8} \right)$ & x \\[1em]
-         & & & $\displaystyle k_8 = 0.022 exp \left( \frac{34,730}{R T} \right)$ & \\[1em]
-        9 & CH$_4$ + H$_2$O $\rightarrow$ CO + 3H$_2$ & 206
-            & $\displaystyle r_9 = 312 exp \left( -\frac{15,098}{T} \right) [CH_4]$ & x \\[1.5em]
+        7 & C + 2H$_2$ $\rightarrow$ CH$_4$ & -75 & $\displaystyle r_7 = 6.11 \times 10^{-3} exp \left( -\frac{80,333}{R T} \right) [H_2][C]$ & x \\[1.5em]
+        8 & CO + H$_2$O $\leftrightarrow$ CO$_2$ + H$_2$ & -41 & $\displaystyle r_8 = 0.278 exp \left(-\frac{12,560}{R T} \right) \left([H_2O][CO] - \frac{[H_2O][CO]}{k_8} \right)$ & x \\[1em]
+          & & & $\displaystyle k_8 = 0.022 exp \left( \frac{34,730}{R T} \right)$ & \\[1em]
+        9 & CH$_4$ + H$_2$O $\rightarrow$ CO + 3H$_2$ & 206 & $\displaystyle r_9 = 312 exp \left( -\frac{15,098}{T} \right) [CH_4]$ & x \\[1.5em]
         \bottomrule
     \end{tabular}
     \end{adjustwidth}
