@@ -137,6 +137,22 @@ The steam-biomass gasification reactions and associated rate parameters are give
     \end{adjustwidth}
 \end{table}
 
+\section{Chemical species mass balance}
+
+The rate of change for the solid concentration in a given volume is described by Equation \ref{eq:solidconc}. Similarly, the mass balance for each gas species is given by Equation \ref{eq:gasconc} while the gas mixture concentration is given by Equation \ref{eq:mixconc}.
+
+\begin{equation} \label{eq:solidconc}
+    \frac{\partial \bar\rho_{s,j}}{\partial t} = -\frac{\partial (v \bar\rho_{s,j})}{\partial z} + S_{s,j}
+\end{equation}
+
+\begin{equation} \label{eq:gasconc}
+    \frac{\partial \bar\rho_{g,j}}{\partial t} = -\frac{\partial (y_j \dot m_g)}{\partial z} + S_{g,j} \quad \text{where} \quad y_j = \frac{\bar\rho_{g,j}}{\rho_g}
+\end{equation}
+
+\begin{equation} \label{eq:mixconc}
+    \frac{\partial \bar\rho_g}{\partial t} = -\frac{\partial \dot m_g}{\partial z} + \sum S_{g,j}
+\end{equation}
+
 \section{Fluidization}
 
 This section presents equations used to estimate the fluidized state of the BFB reactor. Equations are provided for the bed expansion and minimum fluidization velocity. The current version of the model neglects the effect of the unconverted fuel on the fluidization behavior.
