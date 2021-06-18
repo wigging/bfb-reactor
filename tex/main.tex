@@ -44,25 +44,20 @@
 
 \title{\textbf{BFB reactor model}}
 \author{Gavin Wiggins and Cornelius Agu}
-\date{\today}
 
 \begin{document}
 
 \maketitle
-
 \tableofcontents
+\newpage
 
 \section{Introduction}
 
 This documentation is for the one-dimensional bubbling fluidized bed (BFB) reactor model developed in Python. The model predicts dynamic and steady-state conditions of a BFB reactor. See the sections below for installation and usage information along with discussions of the equations that are utilized by the model. The Python code for the model is open source and available on GitHub at \url{https://github.com/wigging/bfb-reactor}. An online version of this documentation is hosted at \url{https://gavinw.me/bfb-reactor/}. This work is inspired by the one-dimensional gasification model published by Agu et al. \cite{Agu-2019f}.
 
-\section{Installation}
+\section{Installation and usage}
 
-A recent version of Python 3 is needed to run the BFB reactor model. The following Python packages are also required: NumPy, SciPy, and Matplotlib. The \href{https://www.anaconda.com/products/individual}{Anaconda} distribution of Python is recommended for Mac, Linux, and Windows operating systems.
-
-\section{Usage}
-
-Use the commands shown below to run each model from the terminal.
+A recent version of Python 3 is required to run the BFB reactor model. The following Python packages are also required: NumPy, SciPy, and Matplotlib. The \href{https://www.anaconda.com/products/individual}{Anaconda} distribution of Python is recommended for Mac, Linux, and Windows operating systems. After installing Python and the required packages, download or clone the bfb-reactor repository from GitHub. From within the repository, use the commands shown below to run each model from the terminal:
 
 \begin{minted}{bash}
 # Run the dynamic model
@@ -93,6 +88,70 @@ Inlet/outlet flows and geometry of the reactor applicable to the BFB model are s
     \caption{Inlet and outlet flows (left), geometry parameters (center), and one-dimensional grid (right) for the BFB reactor model.}
     \label{fig:grid}
 \end{figure}
+
+\section{Gas phase properties}
+
+Mass fractions ($Y$) for each gas species are calculated using Equation \ref{eq:massfrac} while mole fractions ($X$) are calculated using Equation \ref{eq:molefrac}.
+
+\begin{align}
+    Y_i &= \frac{\rho_i}{\rho_g} \label{eq:massfrac} \\
+    X_i &= \frac{Y_i / M}{\sum Y_i / M} \label{eq:molefrac}
+\end{align}
+
+Gas viscosity for each of the gas phase species is calculated according to Equation \ref{eq:viscosity} where coefficients $A$, $B$, and $C$ are provided in Table \ref{tab:visc-coeffs}. Thermal conductivity for each gas species is determined using Equation \ref{eq:thermal} where coefficients $A$, $B$, and $C$ are given in Table \ref{tab:thermal-coeffs}. The heat capacity of each gas species is determined by Equation \ref{eq:heatcap} while the coefficients for $A$, $B$, $C$, $D$, and $E$ are given in Table \ref{tab:heatcap-coeffs}. These correlations and coefficients are taken from Coker's book on process design \cite{Coker-2007}.
+
+\begin{align}
+    \mu &= A + B\,T_g + C\,T_g^2 \label{eq:viscosity} \\
+    k &= A + B\,T_g + C\,T_g^2 \label{eq:thermal} \\
+    c_p &= A + B\,T_g + C\,T_g^2 + D\,T_g^3 + E\,T_g^4 \label{eq:heatcap}
+\end{align}
+
+\begin{table}[ht]
+    \caption{Viscosity coefficients for different gas species.}
+    \label{tab:visc-coeffs}
+    \centering
+    \begin{tabular}{lrrrrr}
+        \toprule
+        Coefficient & CH$_4$ & CO & CO$_2$ & H$_2$ & H$_2$O \\
+        \midrule
+        A ($\times10^{-7}$) & 3.844 & 23.811 & 11.811 & 27.758 & -36.826 \\
+        B ($\times10^{-8}$) & 4.0112 & 5.3944 & 4.9838 & 2.120 & 4.290 \\
+        C ($\times10^{-11}$) & -1.4303 & -1.5411 & -1.0851 & -0.3280 & -0.1620 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{table}[ht]
+    \caption{Thermal conductivity coefficients for different gas species.}
+    \label{tab:thermal-coeffs}
+    \centering
+    \begin{tabular}{lrrrrr}
+        \toprule
+        Coefficient & CH$_4$ & CO & CO$_2$ & H$_2$ & H$_2$O \\
+        \midrule
+        A ($\times10^{-2}$) & -0.935 & 0.158 & -1.200 & 3.951 & 0.053 \\
+        B ($\times10^{-4}$) & 1.4028 & 0.82511 & 1.0208 & 4.5918 & 0.47093 \\
+        C ($\times10^{-8}$) & 3.318 & 1.9081 & -2.2403 & -6.4933 & 4.9551 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{table}[ht]
+    \caption{Heat capacity coefficients for different gas species.}
+    \label{tab:heatcap-coeffs}
+    \centering
+    \begin{tabular}{lrrrrr}
+        \toprule
+        Coefficient & CH$_4$ & CO & CO$_2$ & H$_2$ & H$_2$O \\
+        \midrule
+        A                   & 34.942 & 29.556 & 27.437 & 25.399 & 33.933 \\
+        B ($\times10^{-3}$) & -39.957 & -6.5807 & 42.315 & 20.178 & -8.4186 \\
+        C ($\times10^{-5}$) & 19.184 & 2.0130 & -1.9555 & -3.8549 & 2.9906 \\
+        D ($\times10^{-8}$) & -15.303 & -1.2227 & 0.39968 & 3.188 & -1.7825 \\
+        E ($\times10^{-12}$) & 39.321 & 2.2617 & -0.29872 & -8.7585 & 3.6934 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
 
 \section{Reaction kinetics}
 
@@ -229,9 +288,7 @@ The total bed height is based on the bed expansion estimated from the fluidized 
 
 \subsection{Bubble characteristics}
 
-Here for bubble rise velocity $u_B$ in ref Agu 2019b Equation 22.
-
-Here for bubble volumetric flux $V_B$ in ref Agu 2018 Equation 17.
+Here for bubble rise velocity $u_B$ in Agu 2019b Equation 22. Here for bubble volumetric flux $V_B$ in Agu 2018 Equation 17.
 
 % --- Nomenclature -----------------------------------------------------
 
